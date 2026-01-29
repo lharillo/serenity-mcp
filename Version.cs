@@ -18,7 +18,7 @@ public static class Version
     /// <summary>
     /// Patch version number (bug fixes, backward compatible)
     /// </summary>
-    public const int Patch = 1;
+    public const int Patch = 2;
     
     /// <summary>
     /// Full semantic version string

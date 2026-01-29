@@ -37,9 +37,6 @@ Console.WriteLine($"   Version: {SerenityStarMcp.Version.FullVersion}");
 Console.WriteLine($"   Build: {SerenityStarMcp.Version.BuildTime:yyyy-MM-dd HH:mm:ss} UTC");
 Console.WriteLine("====================================");
 
-// Use PathBase for /serenitystar prefix
-app.UsePathBase("/serenitystar");
-
 // Health check for K8s (before MCP)
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow, version = SerenityStarMcp.Version.FullVersion }));
 
