@@ -10,6 +10,10 @@ Model Context Protocol (MCP) server for the [Serenity Star AI Platform](https://
 
 ## 🚀 Quick Start
 
+### VS Code Setup (Recommended)
+
+**👉 See detailed [VS Code Setup Guide](VSCODE_SETUP.md)** for step-by-step instructions, troubleshooting, and configuration options.
+
 ### MCP Client Configuration
 
 Configure your MCP client (Claude Desktop, VS Code, etc.) to connect to the server:
