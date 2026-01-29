@@ -151,6 +151,7 @@ public class SerenityApiClient
 
     /// <summary>
     /// Create a new agent of specific type (activity, copilot, chat)
+    /// Activity and Chat use "Instructions", Copilot uses "Behaviour"
     /// </summary>
     public async Task<JsonElement> CreateAgentAsync(string agentType, string name, string code, string description, string systemDefinition, string initialMessage, string modelId, string? conversationStarters, CancellationToken cancellationToken = default)
     {
@@ -167,30 +168,66 @@ public class SerenityApiClient
             }
         }
 
-        var agentData = new
+        object agentData;
+        
+        // Activity and Chat use "Instructions", Copilot uses "Behaviour"
+        if (agentType == "activity" || agentType == "chat")
         {
-            Name = name,
-            Code = code,
-            Description = description,
-            General = new
+            agentData = new
             {
-                Code = code,
                 Name = name,
-                Starters = starters
-            },
-            Behaviour = new
-            {
-                SystemDefinition = systemDefinition,
-                InitialMessage = initialMessage
-            },
-            Model = new
-            {
-                Main = new
+                Code = code,
+                Description = description,
+                General = new
                 {
-                    Id = modelId
+                    Code = code,
+                    Name = name,
+                    Starters = starters
+                },
+                Instructions = new
+                {
+                    SystemDefinition = systemDefinition
+                },
+                Behaviour = new
+                {
+                    InitialMessage = initialMessage
+                },
+                Model = new
+                {
+                    Main = new
+                    {
+                        Id = modelId
+                    }
                 }
-            }
-        };
+            };
+        }
+        else // copilot
+        {
+            agentData = new
+            {
+                Name = name,
+                Code = code,
+                Description = description,
+                General = new
+                {
+                    Code = code,
+                    Name = name,
+                    Starters = starters
+                },
+                Behaviour = new
+                {
+                    SystemDefinition = systemDefinition,
+                    InitialMessage = initialMessage
+                },
+                Model = new
+                {
+                    Main = new
+                    {
+                        Id = modelId
+                    }
+                }
+            };
+        }
 
         var jsonContent = JsonSerializer.Serialize(agentData);
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
