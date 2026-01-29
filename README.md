@@ -98,15 +98,26 @@ The server supports both **SSE (legacy)** and **HTTP Streamable** transports:
 
 ## 🛠️ Available Tools
 
+### ⚠️ API Limitations
+
+Some tools are currently restricted by the Serenity Star API:
+- ❌ **GetAgentDetails** - API returns Error 500 (server-side issue)
+- ❌ **UpdateAssistantAgent** - API returns 403 Permission Denied
+- ❌ **UpdateAndPublishAssistantAgent** - API returns 403 Permission Denied
+
+**Note:** These are **API-level restrictions**, not MCP server bugs. Agent updates must be done via the Serenity Star web UI until API permissions are enabled.
+
+See [API_LIMITATIONS.md](API_LIMITATIONS.md) for full details and workarounds.
+
 ### Agent Management (35+ tools)
 
 #### Read Operations
-- **ListAgents** - List all available agents
-- **GetAgentDetails** - Get detailed information about a specific agent
-- **GetAgentInstances** - List all agent instances
-- **GetInsightsByAgent** - Get analytics for an agent
-- **GetInsightsByVersion** - Get analytics for a specific agent version
-- **GetInsightsByInstance** - Get analytics for an agent instance
+- **ListAgents** - ✅ List all available agents
+- **GetAgentDetails** - ❌ UNAVAILABLE (API Error 500)
+- **GetAgentInstances** - ✅ List all agent instances
+- **GetInsightsByAgent** - ✅ Get analytics for an agent
+- **GetInsightsByVersion** - ✅ Get analytics for a specific agent version
+- **GetInsightsByInstance** - ✅ Get analytics for an agent instance
 
 #### Create Operations
 - **CreateAssistantAgent** - Create a new Assistant agent

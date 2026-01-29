@@ -37,7 +37,7 @@ public class AgentTools
         }
     }
 
-    [McpServerTool, Description("Get detailed information about a specific agent")]
+    [McpServerTool, Description("⚠️ CURRENTLY UNAVAILABLE: API returns Error 500. Use ListAgents for basic info instead.")]
     public static async Task<string> GetAgentDetails(
         SerenityApiClient apiClient,
         [Description("The agent code/identifier")] string agentCode,
@@ -134,7 +134,7 @@ public class AgentTools
     // UPDATE OPERATIONS
     // ================================================================================
 
-    [McpServerTool, Description("Update an existing Serenity Star Assistant agent (without publishing)")]
+    [McpServerTool, Description("⚠️ RESTRICTED: API returns 403 Permission Denied. Use Serenity Star web UI to update agents. Programmatic updates require elevated permissions.")]
     public static async Task<string> UpdateAssistantAgent(
         SerenityApiClient apiClient,
         [Description("The agent code/identifier")] string agentCode,
@@ -153,7 +153,7 @@ public class AgentTools
         }
     }
 
-    [McpServerTool, Description("Update and publish an existing Serenity Star Assistant agent")]
+    [McpServerTool, Description("⚠️ RESTRICTED: API returns 403 Permission Denied. Use Serenity Star web UI to update agents. Programmatic updates require elevated permissions.")]
     public static async Task<string> UpdateAndPublishAssistantAgent(
         SerenityApiClient apiClient,
         [Description("The agent code/identifier")] string agentCode,
