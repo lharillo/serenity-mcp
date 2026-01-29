@@ -180,25 +180,37 @@
 
 **Status:** 24 tools added, coverage increased to 68%
 
-### Phase 3: Multiple Agent Types (v1.2.0) - IN PROGRESS
-- [ ] Review schema for Activity/Copilot/Chat/AIProxy agents
-- [ ] Implement Create tools for each type (4 tools)
-- [ ] Implement Update tools for each type (4 tools)
-- [ ] Implement Update+Version tools for each type (4 tools)
-- [ ] Test each agent type creation
-- [ ] Total: 12 new tools
+### Phase 3: Multiple Agent Types (v1.2.0) ✅ COMPLETE
+- [x] Review schema for Activity/Copilot/Chat/AIProxy agents
+- [x] Implement Create tools for each type (4 tools)
+- [x] Implement Update tools for each type (4 tools)
+- [x] Implement Update+Version tools for each type (4 tools)
+- [x] Permanent Knowledge file upload (3 tools)
+- [x] Test agent type creation
+- [x] Deploy v1.2.0
 
-### Phase 4: Knowledge & Advanced (v1.3.0)
-- [ ] Permanent Knowledge file upload (3 tools)
+**Status:** 15 tools added, coverage increased to 88%
+
+### Phase 4: Final Coverage (v1.3.0) - Target 100%
+**Remaining 9 endpoints:**
 - [ ] Extended Conversation context (3 tools)
+  - Get context list for agent
+  - Get context by version
+  - Get single conversation context
 - [ ] Validation schemas (2 tools)
+  - Validate dataset schema
+  - Validate table schema
 - [ ] Account management (3 tools)
+  - Login user
+  - Logout user
+  - Refresh token
 - [ ] Subtenants (1 tool)
-- [ ] Total: 12 new tools
+  - List subtenants
 
-### Final Goal: 100% Coverage
+### Coverage Progress
+- v1.0.5: 27/75 tools (36%) ✅
 - v1.1.0: 51/75 tools (68%) ✅
-- v1.2.0: 63/75 tools (84%) - Target
+- **v1.2.0: 66/75 tools (88%)** ✅
 - v1.3.0: 75/75 tools (100%) - Target
 
 ---
