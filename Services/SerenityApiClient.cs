@@ -80,11 +80,19 @@ public class SerenityApiClient
     }
 
     /// <summary>
-    /// Get detailed information about a specific agent
+    /// Get detailed information about a specific agent (current version)
     /// </summary>
+    /// <remarks>
+    /// Returns the current version of the agent with full configuration including:
+    /// - systemDefinition
+    /// - initialMessage
+    /// - conversationStarters
+    /// - model configuration
+    /// - knowledge sources
+    /// </remarks>
     public async Task<JsonElement> GetAgentDetailsAsync(string agentCode, CancellationToken cancellationToken = default)
     {
-        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/Agent/{agentCode}", null, cancellationToken);
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/AgentVersion/{agentCode}/Current", null, cancellationToken);
         response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }

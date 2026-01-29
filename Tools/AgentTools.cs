@@ -37,7 +37,7 @@ public class AgentTools
         }
     }
 
-    [McpServerTool, Description("Get agent details by code (basic info only - systemDefinition not available). For full config, use Serenity Star web UI.")]
+    [McpServerTool, Description("Get detailed agent configuration including systemDefinition, initialMessage, conversationStarters, model, and knowledge sources")]
     public static async Task<string> GetAgentDetails(
         SerenityApiClient apiClient,
         [Description("The agent code/identifier")] string agentCode,
@@ -45,25 +45,12 @@ public class AgentTools
     {
         try
         {
-            // Workaround: API endpoint /api/Agent/{code} returns 500 error
-            // Instead, list all agents and filter by code
-            var agents = await apiClient.GetAgentsAsync(500, cancellationToken);
-            
-            var agentList = JsonSerializer.Deserialize<JsonElement>(agents);
-            var items = agentList.GetProperty("items");
-            
-            foreach (var agent in items.EnumerateArray())
-            {
-                if (agent.TryGetProperty("code", out var code) && code.GetString() == agentCode)
-                {
-                    return JsonSerializer.Serialize(agent, new JsonSerializerOptions { WriteIndented = true });
-                }
-            }
-            
-            return JsonSerializer.Serialize(new { 
-                error = $"Agent with code '{agentCode}' not found",
-                note = "Only basic agent info is available. Full configuration (systemDefinition, initialMessage, etc.) requires web UI access."
-            });
+            var agentDetails = await apiClient.GetAgentDetailsAsync(agentCode, cancellationToken);
+            return JsonSerializer.Serialize(agentDetails, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (HttpRequestException ex)
+        {
+            return JsonSerializer.Serialize(new { error = ex.Message });
         }
         catch (Exception ex)
         {
