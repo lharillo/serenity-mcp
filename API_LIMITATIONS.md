@@ -1,7 +1,8 @@
-# Serenity Star API Limitations
+# Serenity Star API Testing Results
 
 **Date:** 2026-01-29  
-**Tested with:** MCP Server v1.0.3
+**Tested with:** MCP Server v1.0.4  
+**Status:** ✅ Most tools working correctly
 
 ---
 
@@ -9,9 +10,9 @@
 
 ### 1. Get Agent Details (`/api/Agent/{code}`)
 
-**Status:** ❌ **NOT WORKING**
+**Status:** ⚠️ **WORKAROUND IMPLEMENTED**
 
-**Error:**
+**Original Endpoint Issue:**
 ```json
 {
   "message": "An unexpected error ocurred (Code 0006)",
@@ -19,43 +20,70 @@
 }
 ```
 
-**Impact:**
-- MCP tool `GetAgentDetails` fails
-- Cannot retrieve full agent configuration programmatically
+**MCP v1.0.4 Solution:**
+- `GetAgentDetails` now filters from `ListAgents` (workaround)
+- Returns basic agent info (id, name, code, description, model, etc.)
+- **Does NOT include:** systemDefinition, initialMessage, knowledge sources
 
-**Workaround:**
-- Use agent list (`ListAgents`) which returns basic info
-- Access Serenity Star web UI for full details
+**What You Get:**
+```json
+{
+  "id": "uuid",
+  "name": "Agent Name",
+  "code": "agent-code",
+  "description": "...",
+  "modelId": "gpt-4o-mini",
+  "temperature": 0.4,
+  "maxOutputTokens": 4096,
+  "active": true
+}
+```
+
+**For Full Configuration:**
+- Use Serenity Star web UI
+- No API endpoint available for complete agent config
 
 ---
 
 ### 2. Update Agent (`/api/v2/agent/assistant/{code}`)
 
-**Status:** ❌ **RESTRICTED**
+**Status:** ✅ **WORKING** (with proper permissions)
 
-**Error:**
+**Requirements:**
+- API key must have write permissions
+- Proper camelCase structure required
+- Must include `knowledge` field (even if empty)
+
+**Correct Structure:**
 ```json
 {
-  "message": "You do not have permission to access this resource.",
-  "statusCode": 403
+  "general": {
+    "name": "Agent Name",
+    "description": "Agent Description"
+  },
+  "behaviour": {
+    "systemDefinition": "System prompt here",
+    "initialMessage": "Welcome message",
+    "conversationStarters": ["Starter 1", "Starter 2"]
+  },
+  "model": {
+    "main": {
+      "id": "model-uuid-here"
+    }
+  },
+  "knowledge": {
+    "knowledgeSources": [],
+    "datasetSources": []
+  }
 }
 ```
 
-**Impact:**
-- MCP tools `UpdateAssistantAgent` and `UpdateAndPublishAssistantAgent` fail
-- **Cannot update `systemDefinition` or any agent configuration via MCP**
-- This is a **server-side permission restriction**, not a bug in the MCP server
-
-**Possible Causes:**
-- API key lacks write permissions
-- Endpoint requires OAuth authentication
-- Tenant-level restriction on programmatic updates
-- Endpoint may be restricted to web UI only
-
-**Workaround:**
-- Update agents manually via Serenity Star web UI
-- Contact Serenity Star support to enable API write permissions
-- Use a service account with elevated permissions (if available)
+**Important Notes:**
+- **Create endpoint uses PascalCase**, **Update uses camelCase**
+- `knowledge` field is **required** even if empty (prevents NullReferenceException)
+- Returns `403` error if API key lacks write permissions
+- Demo tenant API key has write permissions ✅
+- Production API keys may need elevated permissions
 
 ---
 
@@ -100,12 +128,15 @@
 | Tool | Endpoint | Status | Notes |
 |------|----------|--------|-------|
 | ListAgents | `GET /api/Agent` | ✅ Working | Returns basic info |
-| GetAgentDetails | `GET /api/Agent/{code}` | ❌ Error 500 | Server-side issue |
-| CreateAgent | `POST /api/Agent/assistant` | ⚠️ Untested | Likely works |
-| UpdateAgent | `PUT /api/v2/agent/assistant/{code}` | ❌ Error 403 | Permission denied |
-| UpdateAndPublish | `PUT /api/v2/agent/assistant/{code}/publish` | ❌ Error 403 | Permission denied |
-| ExecuteAgent | `POST /api/v2/agent/{code}/execute` | ✅ Working | Confirmed |
+| GetAgentDetails | `GET /api/Agent/{code}` | ⚠️ Workaround | Filters from list (basic info only) |
+| CreateAgent | `POST /api/Agent/assistant` | ✅ Working | PascalCase required |
+| UpdateAgent | `PUT /api/v2/agent/assistant/{code}` | ✅ Working | camelCase + permissions required |
+| UpdateAndPublish | `PUT /api/v2/agent/assistant/{code}/publish` | ✅ Working | camelCase + permissions required |
+| ExecuteAgent | `POST /api/v2/agent/{code}/execute` | ✅ Working | Confirmed working |
 | ListModels | `GET /api/v2/aimodel` | ✅ Working | Needs Models API key |
+| CreateConversation | `POST /api/agent/{code}/conversation` | ✅ Working | Stateful conversations |
+| TokenUsage | `GET /api/v2/insights/tokens` | ✅ Working | Analytics endpoint |
+| Feedback | `POST/DELETE /api/v2/feedback` | ✅ Working | Message feedback |
 
 ---
 

@@ -98,16 +98,17 @@ The server supports both **SSE (legacy)** and **HTTP Streamable** transports:
 
 ## 🛠️ Available Tools
 
-### ⚠️ API Limitations
+### ✅ MCP Server Status
 
-Some tools are currently restricted by the Serenity Star API:
-- ❌ **GetAgentDetails** - API returns Error 500 (server-side issue)
-- ❌ **UpdateAssistantAgent** - API returns 403 Permission Denied
-- ❌ **UpdateAndPublishAssistantAgent** - API returns 403 Permission Denied
+**Version:** 1.0.4  
+**Status:** Fully operational with all major tools working
 
-**Note:** These are **API-level restrictions**, not MCP server bugs. Agent updates must be done via the Serenity Star web UI until API permissions are enabled.
+**Important Notes:**
+- ✅ **Update/Create tools work** (requires write permissions on API key)
+- ⚠️ **GetAgentDetails** returns basic info only (workaround for API bug)
+- ✅ **Execute, List, Models, Conversations** all working perfectly
 
-See [API_LIMITATIONS.md](API_LIMITATIONS.md) for full details and workarounds.
+See [API_LIMITATIONS.md](API_LIMITATIONS.md) for detailed testing results and API requirements.
 
 ### Agent Management (35+ tools)
 

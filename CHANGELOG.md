@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-01-29
+
+### Fixed
+- **UpdateAssistantAgent** - Now uses proper camelCase structure with all required fields
+- **UpdateAndPublishAssistantAgent** - Same fixes as Update tool
+- **GetAgentDetails** - Implemented workaround for broken API endpoint (filters from list)
+
+### Changed
+- Update tools now accept individual parameters instead of JSON string
+- Proper field mapping: PascalCase for Create, camelCase for Update
+- `knowledge` field always included (required by API, even if empty)
+
+### Tested
+- ✅ Update works with demo API key (tested and confirmed)
+- ✅ Execute agent works (stateful and stateless)
+- ✅ List models works
+- ✅ GetAgentDetails workaround provides basic info
+- ❌ Original GetAgentDetails endpoint broken (API returns 500)
+
+### Documentation
+- Updated API_LIMITATIONS.md with correct testing results
+- Added proper Update structure documentation
+- Clarified permission requirements for write operations
+
+### Technical
+- Tools tested against production and demo Serenity Star APIs
+- Fixed case sensitivity issues in request payloads
+- All major tools confirmed working with proper permissions
+
 ## [1.0.3] - 2026-01-29
 
 ### Changed
