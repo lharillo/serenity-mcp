@@ -5,6 +5,56 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-01-29
+
+### Added - Multiple Agent Types Support (12 new tools)
+**Activity Agent (3 tools):**
+- **CreateActivityAgent** - Create workflow automation agents
+- **UpdateActivityAgent** - Update activity agent
+- **UpdateActivityAgentWithVersion** - Update with version state control
+
+**Copilot Agent (3 tools):**
+- **CreateCopilotAgent** - Create interactive assistant with real-time suggestions
+- **UpdateCopilotAgent** - Update copilot agent
+- **UpdateCopilotAgentWithVersion** - Update with version state control
+
+**Chat Agent (3 tools):**
+- **CreateChatAgent** - Create chat completion agents
+- **UpdateChatAgent** - Update chat agent
+- **UpdateChatAgentWithVersion** - Update with version state control
+
+**AI Proxy Agent (3 tools):**
+- **CreateAIProxyAgent** - Create direct model access agents (no processing)
+- **UpdateAIProxyAgent** - Update AI proxy agent
+- **UpdateAIProxyAgentWithVersion** - Update with version state control
+
+### Added - Permanent Knowledge Management (3 new tools)
+- **UploadKnowledgeFile** - Upload permanent knowledge files
+- **UploadKnowledgeFileForAgent** - Upload knowledge for specific agent
+- **DeleteKnowledgeFile** - Delete knowledge files
+
+### Added - New Tool Files
+- `Tools/MultiAgentTools.cs` - Multi-agent type support (12 tools)
+- `Tools/KnowledgeTools.cs` - Permanent knowledge management (3 tools)
+
+### Technical
+- Generic agent creation/update methods in SerenityApiClient
+- Support for all 5 agent types (Assistant, Activity, Copilot, Chat, AIProxy)
+- Simplified AI Proxy schema (no systemDefinition/messages)
+- Version state control (draft/publish) for all agent types
+
+### Coverage Increase
+- **Before:** 51 tools (68% of API)
+- **After:** 66 tools (88% of API)
+- **Added:** 15 new tools
+
+### Agent Type Coverage
+- ✅ Assistant - Complete (CREATE/UPDATE/UPDATE+VERSION)
+- ✅ Activity - Complete (CREATE/UPDATE/UPDATE+VERSION)
+- ✅ Copilot - Complete (CREATE/UPDATE/UPDATE+VERSION)
+- ✅ Chat - Complete (CREATE/UPDATE/UPDATE+VERSION)
+- ✅ AI Proxy - Complete (CREATE/UPDATE/UPDATE+VERSION)
+
 ## [1.1.0] - 2026-01-29
 
 ### Added - Agent Version Management (7 new tools)

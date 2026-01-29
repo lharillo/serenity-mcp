@@ -13,7 +13,7 @@ public static class Version
     /// <summary>
     /// Minor version number (new features, backward compatible)
     /// </summary>
-    public const int Minor = 1;
+    public const int Minor = 2;
     
     /// <summary>
     /// Patch version number (bug fixes, backward compatible)

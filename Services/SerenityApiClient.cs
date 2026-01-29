@@ -146,6 +146,252 @@ public class SerenityApiClient
     }
 
     // ================================================================================
+    // MULTI-AGENT TYPE ENDPOINTS (Activity, Copilot, Chat, AIProxy)
+    // ================================================================================
+
+    /// <summary>
+    /// Create a new agent of specific type (activity, copilot, chat)
+    /// </summary>
+    public async Task<JsonElement> CreateAgentAsync(string agentType, string name, string code, string description, string systemDefinition, string initialMessage, string modelId, string? conversationStarters, CancellationToken cancellationToken = default)
+    {
+        var starters = new List<string>();
+        if (!string.IsNullOrEmpty(conversationStarters))
+        {
+            try
+            {
+                starters = JsonSerializer.Deserialize<List<string>>(conversationStarters) ?? new List<string>();
+            }
+            catch
+            {
+                starters = new List<string> { conversationStarters };
+            }
+        }
+
+        var agentData = new
+        {
+            Name = name,
+            Code = code,
+            Description = description,
+            General = new
+            {
+                Code = code,
+                Name = name,
+                Starters = starters
+            },
+            Behaviour = new
+            {
+                SystemDefinition = systemDefinition,
+                InitialMessage = initialMessage
+            },
+            Model = new
+            {
+                Main = new
+                {
+                    Id = modelId
+                }
+            }
+        };
+
+        var jsonContent = JsonSerializer.Serialize(agentData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/agent/{agentType}", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Update an existing agent of specific type
+    /// </summary>
+    public async Task<JsonElement> UpdateAgentAsync(string agentType, string agentCode, string name, string description, string systemDefinition, string initialMessage, string modelId, string? conversationStarters, CancellationToken cancellationToken = default)
+    {
+        var starters = new List<string>();
+        if (!string.IsNullOrEmpty(conversationStarters))
+        {
+            try
+            {
+                starters = JsonSerializer.Deserialize<List<string>>(conversationStarters) ?? new List<string>();
+            }
+            catch
+            {
+                starters = new List<string> { conversationStarters };
+            }
+        }
+
+        var agentData = new
+        {
+            general = new
+            {
+                name = name,
+                description = description
+            },
+            behaviour = new
+            {
+                systemDefinition = systemDefinition,
+                initialMessage = initialMessage,
+                conversationStarters = starters
+            },
+            model = new
+            {
+                main = new
+                {
+                    id = modelId
+                }
+            },
+            knowledge = new
+            {
+                knowledgeSources = new List<object>(),
+                datasetSources = new List<object>()
+            }
+        };
+
+        var jsonContent = JsonSerializer.Serialize(agentData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Put, $"api/v2/agent/{agentType}/{agentCode}", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Update and control version state of an agent
+    /// </summary>
+    public async Task<JsonElement> UpdateAgentWithVersionAsync(string agentType, string agentCode, string versionState, string name, string description, string systemDefinition, string initialMessage, string modelId, string? conversationStarters, CancellationToken cancellationToken = default)
+    {
+        var starters = new List<string>();
+        if (!string.IsNullOrEmpty(conversationStarters))
+        {
+            try
+            {
+                starters = JsonSerializer.Deserialize<List<string>>(conversationStarters) ?? new List<string>();
+            }
+            catch
+            {
+                starters = new List<string> { conversationStarters };
+            }
+        }
+
+        var agentData = new
+        {
+            general = new
+            {
+                name = name,
+                description = description
+            },
+            behaviour = new
+            {
+                systemDefinition = systemDefinition,
+                initialMessage = initialMessage,
+                conversationStarters = starters
+            },
+            model = new
+            {
+                main = new
+                {
+                    id = modelId
+                }
+            },
+            knowledge = new
+            {
+                knowledgeSources = new List<object>(),
+                datasetSources = new List<object>()
+            }
+        };
+
+        var jsonContent = JsonSerializer.Serialize(agentData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Put, $"api/v2/agent/{agentType}/{agentCode}/{versionState}", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Create AI Proxy agent (simpler schema)
+    /// </summary>
+    public async Task<JsonElement> CreateAIProxyAgentAsync(string name, string code, string description, string modelId, CancellationToken cancellationToken = default)
+    {
+        var agentData = new
+        {
+            Name = name,
+            Code = code,
+            Description = description,
+            Model = new
+            {
+                Main = new
+                {
+                    Id = modelId
+                }
+            }
+        };
+
+        var jsonContent = JsonSerializer.Serialize(agentData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/agent/aiproxy", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Update AI Proxy agent
+    /// </summary>
+    public async Task<JsonElement> UpdateAIProxyAgentAsync(string agentCode, string name, string description, string modelId, CancellationToken cancellationToken = default)
+    {
+        var agentData = new
+        {
+            general = new
+            {
+                name = name,
+                description = description
+            },
+            model = new
+            {
+                main = new
+                {
+                    id = modelId
+                }
+            }
+        };
+
+        var jsonContent = JsonSerializer.Serialize(agentData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Put, $"api/v2/agent/aiproxy/{agentCode}", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Update AI Proxy agent with version state
+    /// </summary>
+    public async Task<JsonElement> UpdateAIProxyAgentWithVersionAsync(string agentCode, string versionState, string name, string description, string modelId, CancellationToken cancellationToken = default)
+    {
+        var agentData = new
+        {
+            general = new
+            {
+                name = name,
+                description = description
+            },
+            model = new
+            {
+                main = new
+                {
+                    id = modelId
+                }
+            }
+        };
+
+        var jsonContent = JsonSerializer.Serialize(agentData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Put, $"api/v2/agent/aiproxy/{agentCode}/{versionState}", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
     // AGENT VERSION ENDPOINTS
     // ================================================================================
 
@@ -369,6 +615,54 @@ public class SerenityApiClient
     public async Task<JsonElement> GetModelsAsync(CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, "api/v2/aimodel?pageSize=500", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
+    // KNOWLEDGE MANAGEMENT ENDPOINTS (Permanent)
+    // ================================================================================
+
+    /// <summary>
+    /// Upload a knowledge file (permanent, for agent knowledge base)
+    /// </summary>
+    public async Task<JsonElement> UploadKnowledgeFileAsync(byte[] fileContent, string fileName, CancellationToken cancellationToken = default)
+    {
+        using var content = new MultipartFormDataContent();
+        var fileStreamContent = new ByteArrayContent(fileContent);
+        fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+        content.Add(fileStreamContent, "File", fileName);
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/KnowledgeFile/upload", content, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Upload a knowledge file for a specific agent
+    /// </summary>
+    public async Task<JsonElement> UploadKnowledgeFileForAgentAsync(string agentCode, byte[] fileContent, string fileName, CancellationToken cancellationToken = default)
+    {
+        using var content = new MultipartFormDataContent();
+        var fileStreamContent = new ByteArrayContent(fileContent);
+        fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+        content.Add(fileStreamContent, "File", fileName);
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/KnowledgeFile/upload/{agentCode}", content, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Delete a knowledge file
+    /// </summary>
+    public async Task<JsonElement> DeleteKnowledgeFileAsync(string fileId, CancellationToken cancellationToken = default)
+    {
+        var payload = new { fileId };
+        var jsonContent = JsonSerializer.Serialize(payload);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Delete, "api/v2/KnowledgeFile", httpContent, cancellationToken);
         response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }

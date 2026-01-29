@@ -100,17 +100,26 @@ The server supports both **SSE (legacy)** and **HTTP Streamable** transports:
 
 ### ✅ MCP Server Status
 
-**Version:** 1.1.0  
-**Status:** Fully operational - 51 tools available (68% API coverage)
+**Version:** 1.2.0  
+**Status:** Fully operational - 66 tools available (88% API coverage)
 
 **Major Features:**
-- ✅ **Agent Management** - Full CRUD + version control
+- ✅ **All 5 Agent Types** - Assistant, Activity, Copilot, Chat, AI Proxy
+- ✅ **Agent Version Control** - Draft, publish, version management
 - ✅ **Dataset Management** - Complete dataset & table operations
+- ✅ **Knowledge Management** - Permanent & volatile knowledge files
 - ✅ **Embeddings** - Text embedding generation
 - ✅ **Transcription** - Audio/video transcription
 - ✅ **File Management** - Upload, download, metadata
 - ✅ **Conversations** - Stateful agent interactions
 - ✅ **Analytics** - Token usage & insights
+
+**Agent Types Supported:**
+- **Assistant** - General purpose conversational agents
+- **Activity** - Workflow automation agents
+- **Copilot** - Interactive assistants with real-time suggestions
+- **Chat** - Chat completion agents for conversational AI
+- **AI Proxy** - Direct model access without processing
 
 See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for roadmap and [API_LIMITATIONS.md](API_LIMITATIONS.md) for testing results.
 
