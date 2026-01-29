@@ -40,24 +40,6 @@ Console.WriteLine("====================================");
 // Use PathBase for /serenitystar prefix
 app.UsePathBase("/serenitystar");
 
-// Strip the pathbase for internal routing
-app.Use(async (context, next) =>
-{
-    var originalPath = context.Request.Path;
-    var originalPathBase = context.Request.PathBase;
-    
-    if (originalPathBase.HasValue && originalPathBase.Value == "/serenitystar")
-    {
-        context.Request.PathBase = "";
-        context.Request.Path = originalPath;
-    }
-    
-    await next();
-    
-    context.Request.PathBase = originalPathBase;
-    context.Request.Path = originalPath;
-});
-
 // Health check for K8s (before MCP)
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow, version = SerenityStarMcp.Version.FullVersion }));
 
