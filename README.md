@@ -267,3 +267,10 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ---
 
 **Built with ❤️ by Subgen AI**
+
+## Repository
+
+- **GitHub:** https://github.com/lharillo/serenity-mcp
+- **Docker Hub:** https://hub.docker.com/r/lharillo/serenity-mcp
+- **Issues:** https://github.com/lharillo/serenity-mcp/issues
+
