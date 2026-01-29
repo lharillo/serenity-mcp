@@ -145,6 +145,84 @@ public class SerenityApiClient
         return await ParseJsonResponse(response, cancellationToken);
     }
 
+    // ================================================================================
+    // AGENT VERSION ENDPOINTS
+    // ================================================================================
+
+    /// <summary>
+    /// List all versions of a specific agent
+    /// </summary>
+    public async Task<JsonElement> GetAgentVersionsAsync(string agentCode, string queryString, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/AgentVersion/{agentCode}?{queryString}", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Get the published (active) version of an agent
+    /// </summary>
+    public async Task<JsonElement> GetPublishedAgentVersionAsync(string agentCode, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/AgentVersion/{agentCode}/Published", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Get a specific version of an agent by version number
+    /// </summary>
+    public async Task<JsonElement> GetAgentVersionByNumberAsync(string agentCode, int versionNumber, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/AgentVersion/{agentCode}/{versionNumber}", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Create a new draft version from the current version
+    /// </summary>
+    public async Task<JsonElement> CreateAgentDraftAsync(string agentCode, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/AgentVersion/{agentCode}/Draft", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Create a new draft version from a specific version
+    /// </summary>
+    public async Task<JsonElement> CreateAgentDraftFromVersionAsync(string agentCode, int versionNumber, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/AgentVersion/{agentCode}/Draft/{versionNumber}", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Convert a draft version into a normal saved version without publishing
+    /// </summary>
+    public async Task<JsonElement> SaveDraftVersionAsync(string agentCode, int versionNumber, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Put, $"api/v2/AgentVersion/{agentCode}/Draft/{versionNumber}/Save", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Publish a specific version, making it the current active version
+    /// </summary>
+    public async Task<JsonElement> PublishAgentVersionAsync(string agentCode, int versionNumber, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Put, $"api/v2/AgentVersion/{agentCode}/Publish/{versionNumber}", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
+    // AGENT EXECUTION & CONVERSATION ENDPOINTS
+    // ================================================================================
+
     /// <summary>
     /// Execute an agent with a message
     /// </summary>
@@ -312,6 +390,187 @@ public class SerenityApiClient
         var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/VolatileKnowledge", content, cancellationToken);
         response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
+    // DATASET ENDPOINTS
+    // ================================================================================
+
+    public async Task<JsonElement> ListDatasetsAsync(int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/Dataset?page={page}&pageSize={pageSize}", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> CreateDatasetAsync(object datasetData, CancellationToken cancellationToken = default)
+    {
+        var jsonContent = JsonSerializer.Serialize(datasetData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Dataset", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> GetDatasetAsync(string datasetId, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/Dataset/{datasetId}", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> UpdateDatasetAsync(string datasetId, object updateData, CancellationToken cancellationToken = default)
+    {
+        var jsonContent = JsonSerializer.Serialize(updateData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(new HttpMethod("PATCH"), $"api/v2/Dataset/{datasetId}", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> DeleteDatasetAsync(string datasetId, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Delete, $"api/v2/Dataset/{datasetId}", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> QueryDatasetAsync(string datasetId, object queryData, CancellationToken cancellationToken = default)
+    {
+        var jsonContent = JsonSerializer.Serialize(queryData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/Dataset/{datasetId}/query", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> CreateTableAsync(string datasetId, object tableData, CancellationToken cancellationToken = default)
+    {
+        var jsonContent = JsonSerializer.Serialize(tableData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/Dataset/{datasetId}/table", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> UpdateTableAsync(string datasetId, string tableId, object updateData, CancellationToken cancellationToken = default)
+    {
+        var jsonContent = JsonSerializer.Serialize(updateData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(new HttpMethod("PATCH"), $"api/v2/Dataset/{datasetId}/table/{tableId}", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> DeleteTableAsync(string datasetId, string tableId, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Delete, $"api/v2/Dataset/{datasetId}/table/{tableId}", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> AppendToTableAsync(string datasetId, string tableId, object appendData, CancellationToken cancellationToken = default)
+    {
+        var jsonContent = JsonSerializer.Serialize(appendData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(new HttpMethod("PATCH"), $"api/v2/Dataset/{datasetId}/table/{tableId}/AppendTable", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> ReplaceTableDataAsync(string datasetId, string tableId, object replaceData, CancellationToken cancellationToken = default)
+    {
+        var jsonContent = JsonSerializer.Serialize(replaceData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(new HttpMethod("PATCH"), $"api/v2/Dataset/{datasetId}/table/{tableId}/ReplaceTable", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
+    // EMBEDDINGS ENDPOINTS
+    // ================================================================================
+
+    public async Task<JsonElement> GenerateEmbeddingsAsync(object embeddingData, CancellationToken cancellationToken = default)
+    {
+        var jsonContent = JsonSerializer.Serialize(embeddingData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Embeddings/generate", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
+    // TRANSCRIPTION ENDPOINTS
+    // ================================================================================
+
+    public async Task<JsonElement> TranscribeAudioAsync(byte[] fileContent, string fileName, string? language, CancellationToken cancellationToken = default)
+    {
+        using var content = new MultipartFormDataContent();
+        var fileStreamContent = new ByteArrayContent(fileContent);
+        fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+        content.Add(fileStreamContent, "File", fileName);
+        
+        if (!string.IsNullOrEmpty(language))
+            content.Add(new StringContent(language), "language");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Audio/transcribe", content, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> TranscribeAudioByFileIdAsync(string fileId, string? language, CancellationToken cancellationToken = default)
+    {
+        var payload = new Dictionary<string, object?> { { "fileId", fileId } };
+        if (!string.IsNullOrEmpty(language))
+            payload["language"] = language;
+
+        var jsonContent = JsonSerializer.Serialize(payload);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Audio/transcribe/file", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
+    // FILE MANAGEMENT ENDPOINTS
+    // ================================================================================
+
+    public async Task<JsonElement> UploadFileAsync(byte[] fileContent, string fileName, string mimeType, CancellationToken cancellationToken = default)
+    {
+        using var content = new MultipartFormDataContent();
+        var fileStreamContent = new ByteArrayContent(fileContent);
+        fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(mimeType);
+        content.Add(fileStreamContent, "File", fileName);
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/File/upload", content, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> GetFileInfoAsync(string fileId, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/File/{fileId}", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> DownloadFileAsync(string fileId, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/File/download/{fileId}", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+        var base64 = Convert.ToBase64String(content);
+        return JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(new { fileId, contentBase64 = base64 }));
     }
 
     // ================================================================================

@@ -13,12 +13,12 @@ public static class Version
     /// <summary>
     /// Minor version number (new features, backward compatible)
     /// </summary>
-    public const int Minor = 0;
+    public const int Minor = 1;
     
     /// <summary>
     /// Patch version number (bug fixes, backward compatible)
     /// </summary>
-    public const int Patch = 5;
+    public const int Patch = 0;
     
     /// <summary>
     /// Full semantic version string

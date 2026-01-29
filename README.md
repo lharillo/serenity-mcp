@@ -100,15 +100,19 @@ The server supports both **SSE (legacy)** and **HTTP Streamable** transports:
 
 ### ✅ MCP Server Status
 
-**Version:** 1.0.4  
-**Status:** Fully operational with all major tools working
+**Version:** 1.1.0  
+**Status:** Fully operational - 51 tools available (68% API coverage)
 
-**Important Notes:**
-- ✅ **Update/Create tools work** (requires write permissions on API key)
-- ⚠️ **GetAgentDetails** returns basic info only (workaround for API bug)
-- ✅ **Execute, List, Models, Conversations** all working perfectly
+**Major Features:**
+- ✅ **Agent Management** - Full CRUD + version control
+- ✅ **Dataset Management** - Complete dataset & table operations
+- ✅ **Embeddings** - Text embedding generation
+- ✅ **Transcription** - Audio/video transcription
+- ✅ **File Management** - Upload, download, metadata
+- ✅ **Conversations** - Stateful agent interactions
+- ✅ **Analytics** - Token usage & insights
 
-See [API_LIMITATIONS.md](API_LIMITATIONS.md) for detailed testing results and API requirements.
+See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for roadmap and [API_LIMITATIONS.md](API_LIMITATIONS.md) for testing results.
 
 ### Agent Management (35+ tools)
 

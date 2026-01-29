@@ -5,6 +5,61 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-01-29
+
+### Added - Agent Version Management (7 new tools)
+- **ListAgentVersions** - List all versions with pagination and filtering
+- **GetCurrentAgentVersion** - Get current (latest saved) version
+- **GetPublishedAgentVersion** - Get published (active) version
+- **GetAgentVersionByNumber** - Get specific version by number
+- **CreateAgentDraft** - Create draft from current version
+- **CreateAgentDraftFromVersion** - Create draft from specific version
+- **SaveDraftVersion** - Save draft as normal version
+- **PublishAgentVersion** - Publish version as active
+
+### Added - Dataset Management (11 new tools)
+- **ListDatasets** - List all datasets with pagination
+- **CreateDataset** - Create new dataset
+- **GetDataset** - Get dataset by ID
+- **UpdateDataset** - Update dataset info
+- **DeleteDataset** - Delete dataset
+- **QueryDataset** - Query with natural language or SQL
+- **CreateTable** - Create table in dataset
+- **UpdateTable** - Update table structure
+- **DeleteTable** - Delete table
+- **AppendToTable** - Append data to table
+- **ReplaceTableData** - Replace all table data
+
+### Added - Embeddings (1 new tool)
+- **GenerateEmbeddings** - Generate embeddings for text
+
+### Added - Transcription (2 new tools)
+- **TranscribeAudioFile** - Transcribe audio/video file
+- **TranscribeAudioByFileId** - Transcribe by file ID
+
+### Added - File Management (3 new tools)
+- **UploadFile** - Upload files to Serenity Star
+- **GetFileInfo** - Get file metadata
+- **DownloadFile** - Download file by ID
+
+### Added - New Tool Files
+- `Tools/AgentVersionTools.cs` - Version management
+- `Tools/DatasetTools.cs` - Dataset & table operations
+- `Tools/EmbeddingsTools.cs` - Embedding generation
+- `Tools/TranscriptionTools.cs` - Audio/video transcription
+- `Tools/FileTools.cs` - File operations
+
+### Coverage Increase
+- **Before:** 27 tools (36% of API)
+- **After:** 51 tools (68% of API)
+- **Added:** 24 new tools
+
+### Technical
+- All new endpoints tested against API documentation
+- Comprehensive error handling
+- Support for multipart file uploads
+- PATCH method support for datasets
+
 ## [1.0.4] - 2026-01-29
 
 ### Fixed
