@@ -5,6 +5,71 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-01-29
+
+### Added - Final 9 Endpoints (100% API Coverage Achieved!)
+**Account Management (4 tools):**
+- **GetCurrentUser** - Get current user information
+- **LoginUser** - Login and obtain authentication token
+- **LogoutUser** - Logout current user
+- **RefreshToken** - Refresh authentication token
+
+**Extended Conversation Context (3 tools - already in ConversationTools):**
+- **GetContextList** - Get context variables for agent
+- **GetContextByVersion** - Get context for specific agent version
+- **GetConversationContext** - Get context for specific conversation
+
+**Validation Schemas (2 tools):**
+- **ValidateDatasetSchema** - Validate dataset file schema
+- **ValidateTableSchema** - Validate table file schema
+
+**Subtenants (1 tool):**
+- **ListSubtenants** - List all subtenants with pagination
+
+### Fixed - Agent Creation/Update Issues
+**Activity & Chat Agents:**
+- Fixed schema to use `Instructions` + `Behaviour` (was using only `Behaviour`)
+- Create methods now work correctly for activity/chat agents
+- Update methods fixed with correct schema structure
+
+**AI Proxy Agent:**
+- Fixed creation schema to include `General` field
+- Now creates successfully
+
+**Update Methods:**
+- Fixed `UpdateAgentAsync` to use correct schema per agent type
+- Fixed `UpdateAgentWithVersionAsync` to use correct schema per agent type
+
+### Added - New Tool Files
+- `Tools/AccountTools.cs` - Account management (4 tools)
+- `Tools/ValidationTools.cs` - Schema validation (2 tools)
+- `Tools/SubtenantTools.cs` - Subtenant management (1 tool)
+
+### Changed - Repository Cleanup
+- Moved test scripts to `tests/` directory
+- Removed obsolete test files (test-connection.sh, test-v110.sh)
+- Removed example VSCode configs (documented in README)
+- Kept only essential configuration files
+
+### Technical
+- Updated SerenityApiClient with 10 new methods
+- Fixed agent type detection logic in Create/Update methods
+- Comprehensive testing framework in place
+- All methods follow consistent error handling patterns
+
+### Coverage Achievement
+- **Before:** 66 tools (88% of API)
+- **After:** 75 tools (100% of API) ✅
+- **Added:** 9 new tools
+- **Status:** Complete API coverage achieved!
+
+## [1.2.1] - 2026-01-29
+
+### Fixed
+- Activity/Chat agent creation schema (Instructions vs Behaviour)
+- Comprehensive testing revealed schema issues
+- Updated CreateAgentAsync to detect agent type and use correct structure
+
 ## [1.2.0] - 2026-01-29
 
 ### Added - Multiple Agent Types Support (12 new tools)

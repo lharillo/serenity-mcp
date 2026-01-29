@@ -239,6 +239,7 @@ public class SerenityApiClient
 
     /// <summary>
     /// Update an existing agent of specific type
+    /// Activity/Chat use instructions, Copilot uses behaviour
     /// </summary>
     public async Task<JsonElement> UpdateAgentAsync(string agentType, string agentCode, string name, string description, string systemDefinition, string initialMessage, string modelId, string? conversationStarters, CancellationToken cancellationToken = default)
     {
@@ -255,32 +256,70 @@ public class SerenityApiClient
             }
         }
 
-        var agentData = new
+        object agentData;
+        
+        // Activity and Chat use camelCase with instructions
+        if (agentType == "activity" || agentType == "chat")
         {
-            general = new
+            agentData = new
             {
-                name = name,
-                description = description
-            },
-            behaviour = new
-            {
-                systemDefinition = systemDefinition,
-                initialMessage = initialMessage,
-                conversationStarters = starters
-            },
-            model = new
-            {
-                main = new
+                general = new
                 {
-                    id = modelId
+                    name = name,
+                    description = description
+                },
+                instructions = new
+                {
+                    systemDefinition = systemDefinition
+                },
+                behaviour = new
+                {
+                    initialMessage = initialMessage,
+                    conversationStarters = starters
+                },
+                model = new
+                {
+                    main = new
+                    {
+                        id = modelId
+                    }
+                },
+                knowledge = new
+                {
+                    knowledgeSources = new List<object>(),
+                    datasetSources = new List<object>()
                 }
-            },
-            knowledge = new
+            };
+        }
+        else // copilot
+        {
+            agentData = new
             {
-                knowledgeSources = new List<object>(),
-                datasetSources = new List<object>()
-            }
-        };
+                general = new
+                {
+                    name = name,
+                    description = description
+                },
+                behaviour = new
+                {
+                    systemDefinition = systemDefinition,
+                    initialMessage = initialMessage,
+                    conversationStarters = starters
+                },
+                model = new
+                {
+                    main = new
+                    {
+                        id = modelId
+                    }
+                },
+                knowledge = new
+                {
+                    knowledgeSources = new List<object>(),
+                    datasetSources = new List<object>()
+                }
+            };
+        }
 
         var jsonContent = JsonSerializer.Serialize(agentData);
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
@@ -292,6 +331,7 @@ public class SerenityApiClient
 
     /// <summary>
     /// Update and control version state of an agent
+    /// Activity/Chat use instructions, Copilot uses behaviour
     /// </summary>
     public async Task<JsonElement> UpdateAgentWithVersionAsync(string agentType, string agentCode, string versionState, string name, string description, string systemDefinition, string initialMessage, string modelId, string? conversationStarters, CancellationToken cancellationToken = default)
     {
@@ -308,32 +348,70 @@ public class SerenityApiClient
             }
         }
 
-        var agentData = new
+        object agentData;
+        
+        // Activity and Chat use instructions
+        if (agentType == "activity" || agentType == "chat")
         {
-            general = new
+            agentData = new
             {
-                name = name,
-                description = description
-            },
-            behaviour = new
-            {
-                systemDefinition = systemDefinition,
-                initialMessage = initialMessage,
-                conversationStarters = starters
-            },
-            model = new
-            {
-                main = new
+                general = new
                 {
-                    id = modelId
+                    name = name,
+                    description = description
+                },
+                instructions = new
+                {
+                    systemDefinition = systemDefinition
+                },
+                behaviour = new
+                {
+                    initialMessage = initialMessage,
+                    conversationStarters = starters
+                },
+                model = new
+                {
+                    main = new
+                    {
+                        id = modelId
+                    }
+                },
+                knowledge = new
+                {
+                    knowledgeSources = new List<object>(),
+                    datasetSources = new List<object>()
                 }
-            },
-            knowledge = new
+            };
+        }
+        else // copilot
+        {
+            agentData = new
             {
-                knowledgeSources = new List<object>(),
-                datasetSources = new List<object>()
-            }
-        };
+                general = new
+                {
+                    name = name,
+                    description = description
+                },
+                behaviour = new
+                {
+                    systemDefinition = systemDefinition,
+                    initialMessage = initialMessage,
+                    conversationStarters = starters
+                },
+                model = new
+                {
+                    main = new
+                    {
+                        id = modelId
+                    }
+                },
+                knowledge = new
+                {
+                    knowledgeSources = new List<object>(),
+                    datasetSources = new List<object>()
+                }
+            };
+        }
 
         var jsonContent = JsonSerializer.Serialize(agentData);
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
@@ -344,7 +422,7 @@ public class SerenityApiClient
     }
 
     /// <summary>
-    /// Create AI Proxy agent (simpler schema)
+    /// Create AI Proxy agent (simpler schema, no instructions/behaviour)
     /// </summary>
     public async Task<JsonElement> CreateAIProxyAgentAsync(string name, string code, string description, string modelId, CancellationToken cancellationToken = default)
     {
@@ -353,6 +431,11 @@ public class SerenityApiClient
             Name = name,
             Code = code,
             Description = description,
+            General = new
+            {
+                Code = code,
+                Name = name
+            },
             Model = new
             {
                 Main = new
@@ -902,6 +985,85 @@ public class SerenityApiClient
         var content = await response.Content.ReadAsByteArrayAsync(cancellationToken);
         var base64 = Convert.ToBase64String(content);
         return JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(new { fileId, contentBase64 = base64 }));
+    }
+
+    // ================================================================================
+    // ACCOUNT MANAGEMENT ENDPOINTS
+    // ================================================================================
+
+    public async Task<JsonElement> GetCurrentUserAsync(CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, "api/v2/Account", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> LoginAsync(string email, string password, CancellationToken cancellationToken = default)
+    {
+        var payload = new { email, password };
+        var jsonContent = JsonSerializer.Serialize(payload);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Account/login", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> LogoutAsync(CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Account/logout", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
+    {
+        var payload = new { refreshToken };
+        var jsonContent = JsonSerializer.Serialize(payload);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Account/refresh", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
+    // SUBTENANT ENDPOINTS
+    // ================================================================================
+
+    public async Task<JsonElement> ListSubtenantsAsync(int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/Subtenant?page={page}&pageSize={pageSize}", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
+    // VALIDATION ENDPOINTS
+    // ================================================================================
+
+    public async Task<JsonElement> ValidateDatasetSchemaAsync(byte[] fileContent, string fileName, CancellationToken cancellationToken = default)
+    {
+        using var content = new MultipartFormDataContent();
+        var fileStreamContent = new ByteArrayContent(fileContent);
+        fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+        content.Add(fileStreamContent, "File", fileName);
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Dataset/validation-schema", content, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> ValidateTableSchemaAsync(string datasetId, string tableId, byte[] fileContent, string fileName, CancellationToken cancellationToken = default)
+    {
+        using var content = new MultipartFormDataContent();
+        var fileStreamContent = new ByteArrayContent(fileContent);
+        fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+        content.Add(fileStreamContent, "File", fileName);
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/Dataset/{datasetId}/table/{tableId}/validation-schema", content, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
     }
 
     // ================================================================================
