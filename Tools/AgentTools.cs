@@ -37,7 +37,7 @@ public class AgentTools
         }
     }
 
-    [McpServerTool, Description("⚠️ CURRENTLY UNAVAILABLE: API returns Error 500. Use ListAgents for basic info instead.")]
+    [McpServerTool, Description("Get agent details by code (basic info only - systemDefinition not available). For full config, use Serenity Star web UI.")]
     public static async Task<string> GetAgentDetails(
         SerenityApiClient apiClient,
         [Description("The agent code/identifier")] string agentCode,
@@ -45,12 +45,25 @@ public class AgentTools
     {
         try
         {
-            var agentDetails = await apiClient.GetAgentDetailsAsync(agentCode, cancellationToken);
-            return JsonSerializer.Serialize(agentDetails, new JsonSerializerOptions { WriteIndented = true });
-        }
-        catch (HttpRequestException ex)
-        {
-            return JsonSerializer.Serialize(new { error = ex.Message });
+            // Workaround: API endpoint /api/Agent/{code} returns 500 error
+            // Instead, list all agents and filter by code
+            var agents = await apiClient.GetAgentsAsync(500, cancellationToken);
+            
+            var agentList = JsonSerializer.Deserialize<JsonElement>(agents);
+            var items = agentList.GetProperty("items");
+            
+            foreach (var agent in items.EnumerateArray())
+            {
+                if (agent.TryGetProperty("code", out var code) && code.GetString() == agentCode)
+                {
+                    return JsonSerializer.Serialize(agent, new JsonSerializerOptions { WriteIndented = true });
+                }
+            }
+            
+            return JsonSerializer.Serialize(new { 
+                error = $"Agent with code '{agentCode}' not found",
+                note = "Only basic agent info is available. Full configuration (systemDefinition, initialMessage, etc.) requires web UI access."
+            });
         }
         catch (Exception ex)
         {
@@ -134,17 +147,62 @@ public class AgentTools
     // UPDATE OPERATIONS
     // ================================================================================
 
-    [McpServerTool, Description("⚠️ RESTRICTED: API returns 403 Permission Denied. Use Serenity Star web UI to update agents. Programmatic updates require elevated permissions.")]
+    [McpServerTool, Description("Update an existing Serenity Star Assistant agent (without publishing). Requires write permissions on API key.")]
     public static async Task<string> UpdateAssistantAgent(
         SerenityApiClient apiClient,
         [Description("The agent code/identifier")] string agentCode,
-        [Description("Updated agent data as JSON (camelCase format)")] string agentDataJson,
+        [Description("Agent name")] string name,
+        [Description("Agent description")] string description,
+        [Description("System definition/prompt")] string systemDefinition,
+        [Description("Initial welcome message")] string initialMessage,
+        [Description("Model UUID (get from ListModels)")] string modelId,
+        [Description("Conversation starters as JSON array (optional)")] string? conversationStarters = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var agentData = JsonSerializer.Deserialize<object>(agentDataJson);
-            var result = await apiClient.UpdateAssistantAgentAsync(agentCode, agentData!, cancellationToken);
+            var starters = new List<string>();
+            if (!string.IsNullOrEmpty(conversationStarters))
+            {
+                try
+                {
+                    starters = JsonSerializer.Deserialize<List<string>>(conversationStarters) ?? new List<string>();
+                }
+                catch
+                {
+                    starters = new List<string> { conversationStarters };
+                }
+            }
+
+            // API requires camelCase for Update endpoint
+            var agentData = new
+            {
+                general = new
+                {
+                    name = name,
+                    description = description
+                },
+                behaviour = new
+                {
+                    systemDefinition = systemDefinition,
+                    initialMessage = initialMessage,
+                    conversationStarters = starters
+                },
+                model = new
+                {
+                    main = new
+                    {
+                        id = modelId
+                    }
+                },
+                knowledge = new
+                {
+                    knowledgeSources = new List<object>(),
+                    datasetSources = new List<object>()
+                }
+            };
+
+            var result = await apiClient.UpdateAssistantAgentAsync(agentCode, agentData, cancellationToken);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -153,17 +211,62 @@ public class AgentTools
         }
     }
 
-    [McpServerTool, Description("⚠️ RESTRICTED: API returns 403 Permission Denied. Use Serenity Star web UI to update agents. Programmatic updates require elevated permissions.")]
+    [McpServerTool, Description("Update and publish an existing Serenity Star Assistant agent. Requires write permissions on API key.")]
     public static async Task<string> UpdateAndPublishAssistantAgent(
         SerenityApiClient apiClient,
         [Description("The agent code/identifier")] string agentCode,
-        [Description("Updated agent data as JSON (camelCase format)")] string agentDataJson,
+        [Description("Agent name")] string name,
+        [Description("Agent description")] string description,
+        [Description("System definition/prompt")] string systemDefinition,
+        [Description("Initial welcome message")] string initialMessage,
+        [Description("Model UUID (get from ListModels)")] string modelId,
+        [Description("Conversation starters as JSON array (optional)")] string? conversationStarters = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var agentData = JsonSerializer.Deserialize<object>(agentDataJson);
-            var result = await apiClient.UpdateAndPublishAssistantAgentAsync(agentCode, agentData!, cancellationToken);
+            var starters = new List<string>();
+            if (!string.IsNullOrEmpty(conversationStarters))
+            {
+                try
+                {
+                    starters = JsonSerializer.Deserialize<List<string>>(conversationStarters) ?? new List<string>();
+                }
+                catch
+                {
+                    starters = new List<string> { conversationStarters };
+                }
+            }
+
+            // API requires camelCase for Update endpoint
+            var agentData = new
+            {
+                general = new
+                {
+                    name = name,
+                    description = description
+                },
+                behaviour = new
+                {
+                    systemDefinition = systemDefinition,
+                    initialMessage = initialMessage,
+                    conversationStarters = starters
+                },
+                model = new
+                {
+                    main = new
+                    {
+                        id = modelId
+                    }
+                },
+                knowledge = new
+                {
+                    knowledgeSources = new List<object>(),
+                    datasetSources = new List<object>()
+                }
+            };
+
+            var result = await apiClient.UpdateAndPublishAssistantAgentAsync(agentCode, agentData, cancellationToken);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
