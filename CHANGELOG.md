@@ -10,28 +10,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **BREAKING:** URL changed to `serenitystar-mcp.starkcloud.cc`
 - Removed PathBase middleware completely (now at root path)
-- Switched to direct SSE configuration as primary method (works natively in VS Code)
-- Updated all documentation with working SSE configuration
+- **HTTP Streamable is now the recommended primary transport** (confirmed working in VS Code 1.102+)
+- Updated all documentation with modern HTTP Streamable configuration
 - Fixed health check endpoints (removed `/serenitystar` prefix)
 
 ### Added
-- Direct SSE configuration examples for VS Code (`.vscode/mcp.json` format)
-- Alternative mcp-remote proxy configuration (fallback option)
+- **HTTP Streamable configuration** as primary method (`type: "http"`, URL: root `/`)
+- Direct SSE configuration as alternative/legacy option
+- `vscode-config-http.json` - HTTP Streamable config example
+- `vscode-config-sse.json` - SSE config example (legacy)
 - Comprehensive troubleshooting guide in VSCODE_SETUP.md
-- Cloudflare HTTP/2 origin support for SSE optimization
+- Cloudflare HTTP/2 origin support for optimal performance
 - Dedicated subdomain: serenitystar-mcp.starkcloud.cc
-- `vscode-config-sse.json` example file
 
 ### Fixed
 - Health probe paths in Kubernetes deployment (`/health` instead of `/serenitystar/health`)
-- SSE connection stability with Cloudflare Tunnel (HTTP/2 origin, disabled chunked encoding)
+- Connection stability with Cloudflare Tunnel (HTTP/2 origin, disabled chunked encoding)
 - Documentation now reflects working configurations confirmed with VS Code 1.102+
 
 ### Technical
 - Version: 1.0.3
-- Both SSE and HTTP Streamable transports supported (MapMcp registers both)
-- POST / for HTTP Streamable, GET /sse for SSE transport
-- 405 on POST /sse is expected (use POST / for Streamable)
+- **Both SSE and HTTP Streamable transports fully supported**
+- `POST /` for HTTP Streamable (modern, recommended)
+- `GET /sse` for SSE transport (legacy, still supported)
+- Microsoft MCP SDK `WithHttpTransport()` registers both endpoints automatically
 
 ## [1.0.2] - 2026-01-29
 

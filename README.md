@@ -12,17 +12,16 @@ Model Context Protocol (MCP) server for the [Serenity Star AI Platform](https://
 
 ### VS Code Setup (Recommended)
 
-Use direct SSE connection for best performance:
+Use **HTTP Streamable** (the modern MCP transport) for best performance:
 
 ```json
 {
   "servers": {
     "serenity-star": {
-      "type": "sse",
-      "url": "https://serenitystar-mcp.starkcloud.cc/sse",
+      "type": "http",
+      "url": "https://serenitystar-mcp.starkcloud.cc/",
       "headers": {
-        "X-Serenity-API-Key": "YOUR_API_KEY_HERE",
-        "Accept": "text/event-stream"
+        "X-Serenity-API-Key": "YOUR_API_KEY_HERE"
       }
     }
   }
@@ -31,11 +30,13 @@ Use direct SSE connection for best performance:
 
 **Replace `YOUR_API_KEY_HERE`** with your actual Serenity Star API key.
 
-**👉 See detailed [VS Code Setup Guide](VSCODE_SETUP.md)** for step-by-step instructions, troubleshooting, and alternative configurations.
+**Note:** The trailing `/` in the URL is important - it points to the root endpoint where HTTP Streamable is served.
+
+**👉 See detailed [VS Code Setup Guide](VSCODE_SETUP.md)** for step-by-step instructions, troubleshooting, and alternative configurations (including legacy SSE transport).
 
 ### Claude Desktop Configuration
 
-For Claude Desktop, use the same proxy approach:
+Claude Desktop currently requires the `mcp-remote` proxy for remote servers:
 
 ```json
 {
@@ -45,7 +46,7 @@ For Claude Desktop, use the same proxy approach:
       "args": [
         "-y",
         "mcp-remote",
-        "https://serenitystar-mcp.starkcloud.cc/sse",
+        "https://serenitystar-mcp.starkcloud.cc/",
         "--header",
         "X-Serenity-API-Key: YOUR_API_KEY_HERE"
       ]

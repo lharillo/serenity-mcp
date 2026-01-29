@@ -12,21 +12,34 @@ After investigating SSE session management issues with the Microsoft MCP SDK, we
 
 ### Working Configuration
 
-**New URL:** `https://serenitystar-mcp.starkcloud.cc`
+**URL:** `https://serenitystar-mcp.starkcloud.cc`
 
-**VS Code Config (`.vscode/mcp.json`):**
+**VS Code Config - HTTP Streamable (Recommended):**
 ```json
 {
-  "mcpServers": {
+  "servers": {
     "serenity-star": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://serenitystar-mcp.starkcloud.cc/sse",
-        "--header",
-        "X-Serenity-API-Key: YOUR_API_KEY_HERE"
-      ]
+      "type": "http",
+      "url": "https://serenitystar-mcp.starkcloud.cc/",
+      "headers": {
+        "X-Serenity-API-Key": "YOUR_API_KEY_HERE"
+      }
+    }
+  }
+}
+```
+
+**Alternative - Direct SSE (Legacy):**
+```json
+{
+  "servers": {
+    "serenity-star": {
+      "type": "sse",
+      "url": "https://serenitystar-mcp.starkcloud.cc/sse",
+      "headers": {
+        "X-Serenity-API-Key": "YOUR_API_KEY_HERE",
+        "Accept": "text/event-stream"
+      }
     }
   }
 }
@@ -87,15 +100,26 @@ After investigating SSE session management issues with the Microsoft MCP SDK, we
 - URL: `serenitystar-mcp.starkcloud.cc`
 - Health: `/health` (no prefix)
 
-### Why mcp-remote?
+### Transport Options
 
-**Problem:** Microsoft MCP SDK has a bug where SSE sessions created at `/sse` are not found when messages are sent to `/message?sessionId=X`.
+The server supports both modern and legacy MCP transports:
 
-**Solution:** `mcp-remote` acts as a proxy:
-1. VS Code connects to proxy via STDIO (native transport)
-2. Proxy connects to server via SSE
-3. Proxy manages session mapping
-4. Result: VS Code sees STDIO, server sees SSE ✅
+**HTTP Streamable (Recommended):**
+- Modern MCP transport (2025-03-26 spec)
+- POST requests to root `/` endpoint
+- Best performance and compatibility
+- VS Code native support with `"type": "http"`
+
+**SSE (Legacy):**
+- Original MCP transport
+- GET `/sse` for event stream
+- Still fully supported
+- Useful for older clients
+
+**mcp-remote proxy:**
+- Only needed for clients without native remote support (e.g., Claude Desktop)
+- Converts HTTP/SSE to STDIO
+- Not required for VS Code
 
 ### Cloudflare Configuration
 
@@ -162,16 +186,13 @@ npx -y mcp-remote https://serenitystar-mcp.starkcloud.cc/sse \
 
 ```json
 {
-  "mcpServers": {
+  "servers": {
     "serenity-star": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://serenitystar-mcp.starkcloud.cc/sse",
-        "--header",
-        "X-Serenity-API-Key: YOUR_API_KEY_HERE"
-      ]
+      "type": "http",
+      "url": "https://serenitystar-mcp.starkcloud.cc/",
+      "headers": {
+        "X-Serenity-API-Key": "YOUR_API_KEY_HERE"
+      }
     }
   }
 }
@@ -182,6 +203,8 @@ npx -y mcp-remote https://serenitystar-mcp.starkcloud.cc/sse \
 **Step 3:** Reload VS Code
 
 **Step 4:** Use tools in Chat view!
+
+**Note:** The trailing `/` in the URL is important.
 
 ### Full Documentation
 
@@ -198,7 +221,8 @@ npx -y mcp-remote https://serenitystar-mcp.starkcloud.cc/sse \
 | **Server Deployment** | ✅ Running v1.0.3 |
 | **Cloudflare DNS** | ✅ serenitystar-mcp.starkcloud.cc |
 | **Health Check** | ✅ Healthy |
-| **mcp-remote Proxy** | ✅ Tested & Working |
+| **HTTP Streamable** | ✅ Confirmed Working (Primary) |
+| **SSE Transport** | ✅ Confirmed Working (Legacy) |
 | **VS Code Integration** | ✅ Ready to Use |
 | **Documentation** | ✅ Complete (English) |
 | **GitHub** | ✅ All changes pushed |
