@@ -2,18 +2,38 @@
 
 ## Quick Setup (Recommended)
 
-The easiest way to use the Serenity Star MCP Server with VS Code is through the `mcp-remote` proxy, which handles the SSE-to-STDIO conversion automatically.
+The simplest way to use the Serenity Star MCP Server with VS Code is through direct SSE connection.
 
 ### Prerequisites
 
 - VS Code 1.102 or later
 - GitHub Copilot extension installed and active
 - Valid Serenity Star API key
-- Node.js/npx installed (for mcp-remote)
 
-### Configuration
+### Configuration (Direct SSE)
 
 Create or edit `.vscode/mcp.json` in your project:
+
+```json
+{
+  "servers": {
+    "serenity-star": {
+      "type": "sse",
+      "url": "https://serenitystar-mcp.starkcloud.cc/sse",
+      "headers": {
+        "X-Serenity-API-Key": "YOUR_API_KEY_HERE",
+        "Accept": "text/event-stream"
+      }
+    }
+  }
+}
+```
+
+**Replace `YOUR_API_KEY_HERE`** with your actual Serenity Star API key.
+
+### Alternative: mcp-remote Proxy (If Direct SSE Fails)
+
+If the direct SSE connection doesn't work, you can use `mcp-remote` as a proxy:
 
 ```json
 {
@@ -31,8 +51,6 @@ Create or edit `.vscode/mcp.json` in your project:
   }
 }
 ```
-
-**Replace `YOUR_API_KEY_HERE`** with your actual Serenity Star API key.
 
 ### Global Configuration
 

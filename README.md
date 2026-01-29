@@ -12,24 +12,24 @@ Model Context Protocol (MCP) server for the [Serenity Star AI Platform](https://
 
 ### VS Code Setup (Recommended)
 
-Use `mcp-remote` proxy for best compatibility with VS Code:
+Use direct SSE connection for best performance:
 
 ```json
 {
-  "mcpServers": {
+  "servers": {
     "serenity-star": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://serenitystar-mcp.starkcloud.cc/sse",
-        "--header",
-        "X-Serenity-API-Key: YOUR_API_KEY_HERE"
-      ]
+      "type": "sse",
+      "url": "https://serenitystar-mcp.starkcloud.cc/sse",
+      "headers": {
+        "X-Serenity-API-Key": "YOUR_API_KEY_HERE",
+        "Accept": "text/event-stream"
+      }
     }
   }
 }
 ```
+
+**Replace `YOUR_API_KEY_HERE`** with your actual Serenity Star API key.
 
 **👉 See detailed [VS Code Setup Guide](VSCODE_SETUP.md)** for step-by-step instructions, troubleshooting, and alternative configurations.
 
@@ -72,16 +72,28 @@ dotnet run
 
 ## 📡 API Endpoints
 
+The server supports both **SSE (legacy)** and **HTTP Streamable** transports:
+
+### SSE Transport (Recommended)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/sse` | Server-Sent Events for MCP protocol |
 | `POST` | `/message?sessionId=<id>` | Send messages to MCP server |
+
+### HTTP Streamable Transport
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/` | Send JSON-RPC requests (initialize, tools, etc.) |
+
+### Utility Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
 | `GET` | `/health` | Health check (K8s probes) |
 | `GET` | `/docs` | Interactive documentation |
 
 **Base URL:** `https://serenitystar-mcp.starkcloud.cc`
 
-Example: `https://serenitystar-mcp.starkcloud.cc/health`
+**Note:** The server automatically handles both transports. VS Code with `"type": "sse"` uses the SSE endpoints. HTTP Streamable clients should POST to the root `/` endpoint.
 
 ## 🛠️ Available Tools
 

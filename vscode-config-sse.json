@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "serenity-star": {
+      "type": "sse",
+      "url": "https://serenitystar-mcp.starkcloud.cc/sse",
+      "headers": {
+        "X-Serenity-API-Key": "YOUR_API_KEY_HERE",
+        "Accept": "text/event-stream"
+      }
+    }
+  }
+}
