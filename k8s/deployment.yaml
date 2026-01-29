@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
       - name: serenity-mcp
-        image: serenity-mcp:latest
-        imagePullPolicy: Never
+        image: lharillo/serenity-mcp:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
           protocol: TCP
