@@ -4,7 +4,7 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-purple)](https://dotnet.microsoft.com/)
 [![MCP](https://img.shields.io/badge/MCP-v0.7.0-green)](https://modelcontextprotocol.io/)
 
-**Production URL:** [https://mcp.starkcloud.cc/serenity star](https://mcp.starkcloud.cc/serenitystar)
+**Production URL:** https://serenitystar-mcp.starkcloud.cc
 
 Model Context Protocol (MCP) server for the [Serenity Star AI Platform](https://serenitystar.ai), providing comprehensive tools for AI agent management, model discovery, conversation handling, and document upload via HTTP/SSE transport.
 
@@ -12,20 +12,43 @@ Model Context Protocol (MCP) server for the [Serenity Star AI Platform](https://
 
 ### VS Code Setup (Recommended)
 
-**👉 See detailed [VS Code Setup Guide](VSCODE_SETUP.md)** for step-by-step instructions, troubleshooting, and configuration options.
-
-### MCP Client Configuration
-
-Configure your MCP client (Claude Desktop, VS Code, etc.) to connect to the server:
+Use `mcp-remote` proxy for best compatibility with VS Code:
 
 ```json
 {
   "mcpServers": {
     "serenity-star": {
-      "url": "https://mcp.starkcloud.cc/serenitystar/sse",
-      "headers": {
-        "X-Serenity-API-Key": "YOUR_API_KEY_HERE"
-      }
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://serenitystar-mcp.starkcloud.cc/sse",
+        "--header",
+        "X-Serenity-API-Key: YOUR_API_KEY_HERE"
+      ]
+    }
+  }
+}
+```
+
+**👉 See detailed [VS Code Setup Guide](VSCODE_SETUP.md)** for step-by-step instructions, troubleshooting, and alternative configurations.
+
+### Claude Desktop Configuration
+
+For Claude Desktop, use the same proxy approach:
+
+```json
+{
+  "mcpServers": {
+    "serenity-star": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://serenitystar-mcp.starkcloud.cc/sse",
+        "--header",
+        "X-Serenity-API-Key: YOUR_API_KEY_HERE"
+      ]
     }
   }
 }
@@ -51,10 +74,14 @@ dotnet run
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/serenitystar/sse` | Server-Sent Events for MCP protocol |
-| `POST` | `/serenitystar/message?sessionId=<id>` | Send messages to MCP server |
-| `GET` | `/serenitystar/health` | Health check (K8s probes) |
-| `GET` | `/serenitystar/` | Interactive documentation |
+| `GET` | `/sse` | Server-Sent Events for MCP protocol |
+| `POST` | `/message?sessionId=<id>` | Send messages to MCP server |
+| `GET` | `/health` | Health check (K8s probes) |
+| `GET` | `/docs` | Interactive documentation |
+
+**Base URL:** `https://serenitystar-mcp.starkcloud.cc`
+
+Example: `https://serenitystar-mcp.starkcloud.cc/health`
 
 ## 🛠️ Available Tools
 

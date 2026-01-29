@@ -1,175 +1,208 @@
 # VS Code Configuration for Serenity Star MCP Server
 
-## Server Capabilities
+## Quick Setup (Recommended)
 
-This server uses Microsoft's MCP SDK `WithHttpTransport()` which **automatically supports BOTH**:
+The easiest way to use the Serenity Star MCP Server with VS Code is through the `mcp-remote` proxy, which handles the SSE-to-STDIO conversion automatically.
 
-- ✅ **HTTP Streamable** (modern, preferred by VS Code)
-- ✅ **Server-Sent Events (SSE)** (legacy, fallback)
-
-## VS Code Configuration
-
-### Option 1: Workspace Configuration (Recommended)
-
-Create `.vscode/mcp.json` in your project:
-
-```json
-{
-  "inputs": [
-    {
-      "type": "promptString",
-      "id": "serenity-api-key",
-      "description": "Serenity Star API Key",
-      "password": true
-    }
-  ],
-  "servers": {
-    "serenity-star": {
-      "type": "http",
-      "url": "https://mcp.starkcloud.cc/serenitystar/sse",
-      "headers": {
-        "X-Serenity-API-Key": "${input:serenity-api-key}"
-      }
-    }
-  }
-}
-```
-
-### Option 2: Force SSE Transport (If HTTP fails)
-
-```json
-{
-  "inputs": [
-    {
-      "type": "promptString",
-      "id": "serenity-api-key",
-      "description": "Serenity Star API Key",
-      "password": true
-    }
-  ],
-  "servers": {
-    "serenity-star": {
-      "type": "sse",
-      "url": "https://mcp.starkcloud.cc/serenitystar/sse",
-      "headers": {
-        "X-Serenity-API-Key": "${input:serenity-api-key}"
-      }
-    }
-  }
-}
-```
-
-## Prerequisites
+### Prerequisites
 
 - VS Code 1.102 or later
 - GitHub Copilot extension installed and active
 - Valid Serenity Star API key
+- Node.js/npx installed (for mcp-remote)
 
-## Setup Steps
+### Configuration
 
-1. **Install/Update VS Code**
-   - Ensure you have VS Code 1.102+
-   - Update GitHub Copilot extension to latest
+Create or edit `.vscode/mcp.json` in your project:
 
-2. **Add MCP Server**
-   - Copy the configuration above to `.vscode/mcp.json` OR
-   - Use Command Palette: `MCP: Add Server`
+```json
+{
+  "mcpServers": {
+    "serenity-star": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://serenitystar-mcp.starkcloud.cc/sse",
+        "--header",
+        "X-Serenity-API-Key: YOUR_API_KEY_HERE"
+      ]
+    }
+  }
+}
+```
 
-3. **Provide API Key**
-   - VS Code will prompt for your Serenity Star API key
-   - The key is stored securely for subsequent uses
+**Replace `YOUR_API_KEY_HERE`** with your actual Serenity Star API key.
 
-4. **Verify Connection**
-   - Open Command Palette: `MCP: List Servers`
-   - You should see `serenity-star` listed
-   - Check status - should show "Running"
+### Global Configuration
 
-5. **Use Tools in Chat**
-   - Open Chat view (`Ctrl+Alt+I` / `Cmd+Alt+I`)
-   - Click **Tools** button
-   - Select tools from `serenity-star` (35+ available)
-   - Ask questions like "List available AI models"
+To use the server across all workspaces:
 
-## Troubleshooting
+1. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+2. Run: `MCP: Add Server`
+3. Enter server details:
+   - **Type:** Select "Standard Input/Output (stdio)"
+   - **Command:** `npx`
+   - **Args:** `-y`, `mcp-remote`, `https://serenitystar-mcp.starkcloud.cc/sse`, `--header`, `X-Serenity-API-Key: YOUR_KEY`
 
-### Server Shows "Loading..." Forever
+## Using the Server
 
-**Cause:** VS Code is trying HTTP Streamable but getting SSE responses
+Once configured:
 
-**Fix:** Force SSE transport by using `"type": "sse"` in config (Option 2 above)
-
-### No Response from Server
-
-1. **Check server health:**
-   ```bash
-   curl https://mcp.starkcloud.cc/serenitystar/health
-   ```
-   Should return: `{"status":"healthy","timestamp":"...","version":"1.0.0"}`
-
-2. **Test SSE connection:**
-   ```bash
-   curl -N -H "Accept: text/event-stream" \
-        -H "X-Serenity-API-Key: YOUR_KEY" \
-        https://mcp.starkcloud.cc/serenitystar/sse
-   ```
-   Should return SSE stream with endpoint info
-
-3. **Check VS Code logs:**
-   - View → Output
-   - Select "Model Context Protocol" from dropdown
-   - Look for connection errors
-
-### "Cannot have more than 128 tools"
-
-**Cause:** Model constraint limits total tools to 128
-
-**Fix:** Deselect some tools or servers in the Chat view tools picker
-
-### API Key Not Accepted
-
-1. Verify your API key is valid at https://docs.serenitystar.ai
-2. Check that the key has appropriate permissions
-3. Try regenerating the key if it's expired
+1. **Open Chat View** (`Ctrl+Alt+I` / `Cmd+Alt+I`)
+2. **Click the Tools button** (⚙️)
+3. **Select tools** from `serenity-star` (35+ available)
+4. **Ask questions** like:
+   - "List available AI models"
+   - "Create a new agent called TestBot"
+   - "Show me my conversations"
 
 ## Available Tools (35+)
 
 ### Agent Management
 - `serenity_get_agents` - List all agents
-- `serenity_get_agent` - Get specific agent details
+- `serenity_get_agent` - Get specific agent details  
 - `serenity_create_agent` - Create new agent
 - `serenity_update_agent` - Update existing agent
 - `serenity_publish_agent` - Publish agent
 - `serenity_execute_agent` - Execute agent with message
+- `serenity_execute_agent_stateless` - Execute without conversation
 
 ### Model Discovery
 - `serenity_list_models` - List 100+ AI models
 - `serenity_get_model_by_uuid` - Get model by UUID
-- `serenity_search_models` - Search models
+- `serenity_search_models` - Search models by name/provider
 
 ### Conversations
-- `serenity_list_conversations` - List conversations
+- `serenity_list_conversations` - List all conversations
 - `serenity_get_conversation` - Get conversation details
-- `serenity_create_conversation` - Create new conversation
+- `serenity_create_conversation` - Start new conversation
 - `serenity_delete_conversation` - Delete conversation
+- `serenity_add_message_to_conversation` - Add message
 
-### Analytics & More
-- Agent insights
-- Token usage
-- Feedback management
-- Document upload
+### Document Upload
+- `serenity_upload_volatile_knowledge` - Upload temporary documents
+- Supports base64-encoded files
+- Used for context in agent execution
+
+### Analytics & Insights
+- `serenity_get_agent_insights` - Get agent usage analytics
+- `serenity_get_token_usage` - View token consumption
+- `serenity_submit_feedback` - Submit feedback
+- `serenity_get_feedback` - Retrieve feedback
+
+### Account & Channels
+- `serenity_get_account_info` - Get account details
+- `serenity_list_channels` - List available channels
+
+## Troubleshooting
+
+### Server Not Appearing in VS Code
+
+1. **Reload Window:**
+   - Command Palette → `Developer: Reload Window`
+
+2. **Check MCP Server List:**
+   - Command Palette → `MCP: List Servers`
+   - Look for `serenity-star` in the list
+
+3. **Restart Server:**
+   - In server list, click on `serenity-star` → `Restart`
+
+### Connection Errors
+
+1. **Check logs:**
+   - View → Output
+   - Select "Model Context Protocol" from dropdown
+
+2. **Verify API Key:**
+   - Ensure your Serenity Star API key is valid
+   - Check at https://docs.serenitystar.ai
+
+3. **Test server directly:**
+   ```bash
+   curl https://serenitystar-mcp.starkcloud.cc/health
+   # Should return: {"status":"healthy",...}
+   ```
+
+### "Cannot have more than 128 tools"
+
+VS Code has a 128 tools limit per request. If you hit this:
+
+- Deselect some tools in the Chat view tools picker
+- Or ensure virtual tools are enabled (check settings)
+
+### mcp-remote Not Found
+
+Install Node.js if not already installed:
+- https://nodejs.org/
+
+The `npx` command will automatically download `mcp-remote` on first use.
+
+## Alternative: Direct SSE Connection (Advanced)
+
+**⚠️ Note:** Direct SSE connection currently has session management issues with the Microsoft MCP SDK. Use the proxy method above for best results.
+
+If you want to try direct SSE anyway:
+
+```json
+{
+  "mcpServers": {
+    "serenity-star": {
+      "type": "sse",
+      "url": "https://serenitystar-mcp.starkcloud.cc/sse",
+      "headers": {
+        "X-Serenity-API-Key": "YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+## Server Information
+
+- **Primary URL:** https://serenitystar-mcp.starkcloud.cc
+- **Legacy URL:** https://mcp.starkcloud.cc (still works)
+- **Health Check:** https://serenitystar-mcp.starkcloud.cc/health
+- **Interactive Docs:** https://serenitystar-mcp.starkcloud.cc/docs
+- **Protocol:** MCP 2024-11-05
+- **Transport:** HTTP/SSE with mcp-remote proxy
+- **Version:** 1.0.2
+
+## Security
+
+- API keys are sent via headers (not stored server-side)
+- Server acts as stateless proxy to Serenity API
+- HTTPS-only with Cloudflare security
+- Non-root container deployment
 
 ## Support
 
-- **Live Demo:** https://mcp.starkcloud.cc/serenitystar/docs
 - **GitHub:** https://github.com/lharillo/serenity-mcp
 - **Issues:** https://github.com/lharillo/serenity-mcp/issues
 - **Serenity Docs:** https://docs.serenitystar.ai
+- **MCP Protocol:** https://modelcontextprotocol.io
 
-## Technical Details
+## Example Usage in VS Code
 
-- **Transport:** HTTP/SSE (automatic negotiation)
-- **Protocol Version:** 2024-11-05
-- **SDK:** Microsoft MCP SDK 0.7.0-preview.1
-- **Runtime:** .NET 10
-- **Deployment:** Kubernetes + Cloudflare Tunnel
-- **Status:** ✅ Production (v1.0.0)
+### List Available Models
+
+```
+@copilot #serenity_list_models List all available AI models
+```
+
+### Create an Agent
+
+```
+@copilot #serenity_create_agent Create an agent named "MyBot" with description "A helpful assistant"
+```
+
+### Execute Agent
+
+```
+@copilot #serenity_execute_agent Execute agent "MyBot" with message "Hello, how are you?"
+```
+
+---
+
+**Built by [Subgen AI](https://subgen.ai)** - Enterprise AI Solutions
