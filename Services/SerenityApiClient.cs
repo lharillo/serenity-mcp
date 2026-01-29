@@ -1,84 +1,364 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using System.Text;
 using System.Text.Json;
+using SerenityStarMcp.Models;
 
 namespace SerenityStarMcp.Services;
 
+/// <summary>
+/// HTTP client for interacting with the Serenity Star AI Platform API
+/// </summary>
+/// <remarks>
+/// Provides methods for managing AI agents, models, conversations, prompts, and other Serenity Star resources.
+/// API key is provided by MCP clients via X-Serenity-API-Key header for security.
+/// </remarks>
 public class SerenityApiClient
 {
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
-    private readonly string _apiKey;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public SerenityApiClient(HttpClient httpClient, IConfiguration configuration)
+    /// <summary>
+    /// Initializes a new instance of the Serenity API client
+    /// </summary>
+    /// <param name="httpClient">Configured HTTP client instance</param>
+    /// <param name="configuration">Application configuration</param>
+    /// <param name="httpContextAccessor">HTTP context accessor to read request headers</param>
+    public SerenityApiClient(HttpClient httpClient, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
     {
         _httpClient = httpClient;
         _configuration = configuration;
-        _apiKey = GetApiKey();
-        
-        _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
+        _httpContextAccessor = httpContextAccessor;
     }
 
+    /// <summary>
+    /// Gets the API key from the current HTTP request header
+    /// </summary>
     private string GetApiKey()
     {
-        // Try environment variable first
-        var apiKey = Environment.GetEnvironmentVariable("SERENITY_API_KEY");
-        if (!string.IsNullOrEmpty(apiKey))
-            return apiKey;
+        var context = _httpContextAccessor.HttpContext;
+        if (context == null)
+            throw new InvalidOperationException("No HTTP context available");
 
-        // Fall back to configuration
-        apiKey = _configuration["SerenityApi:ApiKey"];
-        if (string.IsNullOrEmpty(apiKey))
-            throw new InvalidOperationException("Serenity API key not found. Set SERENITY_API_KEY environment variable or configure SerenityApi:ApiKey in appsettings.json");
+        if (context.Request.Headers.TryGetValue("X-Serenity-API-Key", out var apiKey))
+        {
+            return apiKey.ToString();
+        }
 
-        return apiKey;
+        throw new UnauthorizedAccessException("X-Serenity-API-Key header is required");
     }
 
-    public async Task<JsonElement> GetAgentsAsync(CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Creates an HTTP request message with the API key from request headers
+    /// </summary>
+    private async Task<HttpResponseMessage> SendWithApiKeyAsync(HttpMethod method, string uri, HttpContent? content = null, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync("api/Agent", cancellationToken);
-        response.EnsureSuccessStatusCode();
+        var apiKey = GetApiKey();
         
-        var content = await response.Content.ReadAsStringAsync(cancellationToken);
-        return JsonSerializer.Deserialize<JsonElement>(content);
+        using var request = new HttpRequestMessage(method, uri);
+        request.Headers.Add("X-API-KEY", apiKey);
+        
+        if (content != null)
+            request.Content = content;
+            
+        return await _httpClient.SendAsync(request, cancellationToken);
     }
 
+    // ================================================================================
+    // AGENT ENDPOINTS
+    // ================================================================================
+
+    /// <summary>
+    /// List all available agents
+    /// </summary>
+    public async Task<JsonElement> GetAgentsAsync(int pageSize = 50, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/Agent?pageSize={pageSize}", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Get detailed information about a specific agent
+    /// </summary>
     public async Task<JsonElement> GetAgentDetailsAsync(string agentCode, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync($"api/Agent/{agentCode}", cancellationToken);
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/Agent/{agentCode}", null, cancellationToken);
         response.EnsureSuccessStatusCode();
-        
-        var content = await response.Content.ReadAsStringAsync(cancellationToken);
-        return JsonSerializer.Deserialize<JsonElement>(content);
+        return await ParseJsonResponse(response, cancellationToken);
     }
 
-    public async Task<JsonElement> ExecuteAgentAsync(string agentCode, string message, string channel = "MCP", string userIdentifier = "mcp-user", CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Create a new Assistant agent
+    /// </summary>
+    /// <remarks>
+    /// Uses PascalCase for field names as required by the API
+    /// </remarks>
+    public async Task<JsonElement> CreateAssistantAgentAsync(object agentData, CancellationToken cancellationToken = default)
     {
-        var payload = new
+        var jsonContent = JsonSerializer.Serialize(agentData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/Agent/assistant", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Update an existing Assistant agent without publishing
+    /// </summary>
+    /// <remarks>
+    /// Uses camelCase for field names (different from Create endpoint)
+    /// </remarks>
+    public async Task<JsonElement> UpdateAssistantAgentAsync(string agentCode, object agentData, CancellationToken cancellationToken = default)
+    {
+        var jsonContent = JsonSerializer.Serialize(agentData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Put, $"api/v2/agent/assistant/{agentCode}", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Update and publish an existing Assistant agent
+    /// </summary>
+    /// <remarks>
+    /// Uses camelCase for field names (different from Create endpoint)
+    /// </remarks>
+    public async Task<JsonElement> UpdateAndPublishAssistantAgentAsync(string agentCode, object agentData, CancellationToken cancellationToken = default)
+    {
+        var jsonContent = JsonSerializer.Serialize(agentData);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Put, $"api/v2/agent/assistant/{agentCode}/publish", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Execute an agent with a message
+    /// </summary>
+    public async Task<JsonElement> ExecuteAgentAsync(string agentCode, string message, string channel = "MCP", string userIdentifier = "mcp-client", string? chatId = null, string[]? volatileKnowledgeIds = null, CancellationToken cancellationToken = default)
+    {
+        var parameters = new List<object>
         {
-            parameters = new[]
-            {
-                new { Key = "message", Value = message },
-                new { Key = "channel", Value = channel },
-                new { Key = "userIdentifier", Value = userIdentifier }
-            }
+            new { Key = "message", Value = message },
+            new { Key = "channel", Value = channel },
+            new { Key = "userIdentifier", Value = userIdentifier }
         };
 
+        if (!string.IsNullOrEmpty(chatId))
+            parameters.Add(new { Key = "chatId", Value = chatId });
+
+        if (volatileKnowledgeIds != null && volatileKnowledgeIds.Length > 0)
+            parameters.Add(new { Key = "volatileKnowledgeIds", Value = volatileKnowledgeIds });
+
+        var jsonContent = JsonSerializer.Serialize(parameters);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/agent/{agentCode}/execute", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Create a conversation for stateful agent interactions
+    /// </summary>
+    public async Task<JsonElement> CreateConversationAsync(string agentCode, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/agent/{agentCode}/conversation", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> CreateConversationInfoAsync(string agentCode, Dictionary<string, object>? contextVariables = null, CancellationToken cancellationToken = default)
+    {
+        var payload = new { contextVariables = contextVariables ?? new Dictionary<string, object>() };
         var jsonContent = JsonSerializer.Serialize(payload);
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-        var response = await _httpClient.PostAsync($"api/v2/agent/{agentCode}/execute", httpContent, cancellationToken);
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/Agent/{agentCode}/conversation/info", httpContent, cancellationToken);
         response.EnsureSuccessStatusCode();
-        
-        var content = await response.Content.ReadAsStringAsync(cancellationToken);
-        return JsonSerializer.Deserialize<JsonElement>(content);
+        return await ParseJsonResponse(response, cancellationToken);
     }
+
+    public async Task<JsonElement> GetConversationInfoByVersionAsync(string agentCode, int agentVersion, Dictionary<string, object>? contextVariables = null, CancellationToken cancellationToken = default)
+    {
+        var payload = new { contextVariables = contextVariables ?? new Dictionary<string, object>() };
+        var jsonContent = JsonSerializer.Serialize(payload);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/Agent/{agentCode}/{agentVersion}/conversation/info", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> GetTokenUsageAsync(TokenUsageRequest request, CancellationToken cancellationToken = default)
+    {
+        var jsonContent = JsonSerializer.Serialize(request);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/agent/token-usage", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> GetConversationAsync(string agentCode, string conversationId, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/Agent/{agentCode}/conversation/{conversationId}", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> SubmitFeedbackAsync(string agentCode, string conversationId, string agentMessageId, FeedbackRequest feedback, CancellationToken cancellationToken = default)
+    {
+        var jsonContent = JsonSerializer.Serialize(feedback);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/Agent/{agentCode}/conversation/{conversationId}/message/{agentMessageId}/feedback", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> DeleteFeedbackAsync(string agentCode, string conversationId, string agentMessageId, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Delete, $"api/v2/Agent/{agentCode}/conversation/{conversationId}/message/{agentMessageId}/feedback", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
+    // CONVERSATION & CONTEXT ENDPOINTS
+    // ================================================================================
+
+    public async Task<JsonElement> GetContextListAsync(string agentCode, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/agent/{agentCode}/conversation/context", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> GetContextByVersionAsync(string agentCode, int agentVersion, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/agent/{agentCode}/{agentVersion}/conversation/context", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> GetConversationContextAsync(string agentCode, string conversationId, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/agent/{agentCode}/conversation/{conversationId}/context", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> UpdateContextVariablesAsync(string agentCode, string conversationId, Dictionary<string, object> contextVariables, CancellationToken cancellationToken = default)
+    {
+        var payload = new { contextVariables };
+        var jsonContent = JsonSerializer.Serialize(payload);
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Patch, $"api/v2/agent/{agentCode}/conversation/{conversationId}/context", httpContent, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
+    // AGENT INSTANCE ENDPOINTS
+    // ================================================================================
+
+    public async Task<JsonElement> GetAgentInstancesAsync(CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, "api/v2/AgentInstance", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
+    // MODEL ENDPOINTS
+    // ================================================================================
 
     public async Task<JsonElement> GetModelsAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync("api/v2/aimodel?pageSize=500", cancellationToken);
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, "api/v2/aimodel?pageSize=500", null, cancellationToken);
         response.EnsureSuccessStatusCode();
-        
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
+    // VOLATILE KNOWLEDGE ENDPOINTS (Document Upload)
+    // ================================================================================
+
+    /// <summary>
+    /// Upload a document for volatile knowledge (temporary context for agent execution)
+    /// </summary>
+    public async Task<JsonElement> UploadVolatileKnowledgeAsync(byte[] fileContent, string fileName, CancellationToken cancellationToken = default)
+    {
+        using var content = new MultipartFormDataContent();
+        var fileStreamContent = new ByteArrayContent(fileContent);
+        fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+        content.Add(fileStreamContent, "File", fileName);
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/VolatileKnowledge", content, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
+    // CHANNEL CONFIGURATION ENDPOINTS
+    // ================================================================================
+
+    public async Task<JsonElement> GetChannelConfigAsync(string agentCode, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/channel/serenity-chat/{agentCode}", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
+    // INSIGHTS ENDPOINTS
+    // ================================================================================
+
+    public async Task<JsonElement> GetInsightsByAgentAsync(string agentCode, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/agent/{agentCode}/insights", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> GetInsightsByVersionAsync(string agentCode, int agentVersion, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/agent/{agentCode}/{agentVersion}/insights", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    public async Task<JsonElement> GetInsightsByInstanceAsync(string agentCode, string agentInstanceId, CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/agent/{agentCode}/insights/{agentInstanceId}", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
+    // ACCOUNT ENDPOINTS
+    // ================================================================================
+
+    public async Task<JsonElement> GetCurrentAccountAsync(CancellationToken cancellationToken = default)
+    {
+        var response = await SendWithApiKeyAsync(HttpMethod.Get, "api/v2/Account", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await ParseJsonResponse(response, cancellationToken);
+    }
+
+    // ================================================================================
+    // HELPER METHODS
+    // ================================================================================
+
+    private static async Task<JsonElement> ParseJsonResponse(HttpResponseMessage response, CancellationToken cancellationToken)
+    {
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
         return JsonSerializer.Deserialize<JsonElement>(content);
     }

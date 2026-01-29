@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: serenity-mcp
+  namespace: default
+  labels:
+    app: serenity-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: serenity-mcp
+  template:
+    metadata:
+      labels:
+        app: serenity-mcp
+    spec:
+      containers:
+      - name: serenity-mcp
+        image: serenity-mcp:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ASPNETCORE_URLS
+          value: "http://+:8080"
+        - name: SERENITY_API_KEY
+          value: "D337FDE7-2C49-43BA-88C8-C09332CD97CE"
+        - name: SERENITY_MODELS_API_KEY
+          value: "a57f5aa8-08ee-4807-8c6f-eef96f636949"
+        # Remove health checks since stdio server doesn't expose HTTP health endpoint
+        # livenessProbe and readinessProbe removed
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: serenity-mcp
+  namespace: default
+spec:
+  selector:
+    app: serenity-mcp
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP

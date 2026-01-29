@@ -5,10 +5,13 @@ using System.Text.Json;
 
 namespace SerenityStarMcp.Tools;
 
+/// <summary>
+/// MCP tools for discovering available AI models
+/// </summary>
 [McpServerToolType]
 public class ModelTools
 {
-    [McpServerTool, Description("List all available AI models from Serenity Star platform")]
+    [McpServerTool, Description("List all available AI models from Serenity Star platform with UUIDs")]
     public static async Task<string> ListModels(
         SerenityApiClient apiClient,
         CancellationToken cancellationToken = default)
@@ -20,11 +23,11 @@ public class ModelTools
         }
         catch (HttpRequestException ex)
         {
-            return $"Error fetching models: {ex.Message}";
+            return JsonSerializer.Serialize(new { error = $"HTTP error: {ex.Message}" });
         }
         catch (Exception ex)
         {
-            return $"Unexpected error: {ex.Message}";
+            return JsonSerializer.Serialize(new { error = ex.Message });
         }
     }
 }

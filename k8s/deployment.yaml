@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: serenity-mcp
+  labels:
+    app: serenity-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: serenity-mcp
+  template:
+    metadata:
+      labels:
+        app: serenity-mcp
+    spec:
+      containers:
+      - name: serenity-mcp
+        image: serenity-mcp:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_URLS
+          value: "http://+:8080"
+        - name: SerenityApi__BaseUrl
+          value: "https://api.serenitystar.ai"
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+        livenessProbe:
+          httpGet:
+            path: /serenitystar/health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /serenitystar/health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10

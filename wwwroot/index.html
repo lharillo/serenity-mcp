@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serenity Star MCP Server</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+            <div class="container mx-auto px-6 py-16">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-4xl font-bold mb-4">Serenity Star MCP Server</h1>
+                        <p class="text-xl text-blue-100">Model Context Protocol Server for Serenity Star AI Platform</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="inline-block bg-green-500 text-white px-4 py-2 rounded-full">
+                            <i class="fas fa-circle text-xs mr-2"></i>
+                            <span class="font-semibold">LIVE</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-6 py-12">
+            <!-- Quick Start -->
+            <section class="mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Quick Start</h2>
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-700 mb-3">
+                                <i class="fas fa-plug text-blue-600 mr-2"></i>
+                                Connect via SSE
+                            </h3>
+                            <pre class="bg-gray-900 text-green-400 p-4 rounded overflow-x-auto"><code>curl -N -H "Accept: text/event-stream" \
+  https://mcp.starkcloud.cc/serenitystar/sse</code></pre>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-700 mb-3">
+                                <i class="fas fa-heartbeat text-red-600 mr-2"></i>
+                                Health Check
+                            </h3>
+                            <pre class="bg-gray-900 text-green-400 p-4 rounded overflow-x-auto"><code>curl https://mcp.starkcloud.cc/serenitystar/health</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- API Endpoints -->
+            <section class="mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">API Endpoints</h2>
+                <div class="space-y-4">
+                    <!-- SSE Endpoint -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-2">
+                                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded mr-2">GET</span>
+                                    <code class="text-lg font-mono text-gray-800">/serenitystar/sse</code>
+                                </div>
+                                <p class="text-gray-600 mb-4">Server-Sent Events endpoint for MCP protocol communication</p>
+                                <div class="bg-gray-50 p-4 rounded">
+                                    <p class="text-sm text-gray-700 mb-2"><strong>Headers:</strong></p>
+                                    <code class="text-sm">Accept: text/event-stream</code>
+                                </div>
+                            </div>
+                            <a href="/serenitystar/sse" target="_blank" class="ml-4 text-blue-600 hover:text-blue-800">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Message Endpoint -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-2">
+                                    <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded mr-2">POST</span>
+                                    <code class="text-lg font-mono text-gray-800">/serenitystar/message</code>
+                                </div>
+                                <p class="text-gray-600 mb-4">Send messages to the MCP server</p>
+                                <div class="bg-gray-50 p-4 rounded">
+                                    <p class="text-sm text-gray-700 mb-2"><strong>Query Parameters:</strong></p>
+                                    <code class="text-sm">sessionId=&lt;session-id&gt;</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Health Endpoint -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-2">
+                                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded mr-2">GET</span>
+                                    <code class="text-lg font-mono text-gray-800">/serenitystar/health</code>
+                                </div>
+                                <p class="text-gray-600 mb-4">Health check endpoint for monitoring</p>
+                                <div class="bg-gray-50 p-4 rounded">
+                                    <p class="text-sm text-gray-700 mb-2"><strong>Response:</strong></p>
+                                    <pre class="text-sm"><code>{"status":"healthy","timestamp":"..."}</code></pre>
+                                </div>
+                            </div>
+                            <a href="/serenitystar/health" target="_blank" class="ml-4 text-blue-600 hover:text-blue-800">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features -->
+            <section class="mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Features</h2>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="text-blue-600 text-3xl mb-4">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">35+ Tools</h3>
+                        <p class="text-gray-600">Complete CRUD for agents, models, conversations, document upload, analytics, and more</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="text-purple-600 text-3xl mb-4">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Real-time SSE</h3>
+                        <p class="text-gray-600">Server-Sent Events for efficient, real-time communication with MCP clients</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="text-green-600 text-3xl mb-4">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Secure & Stateless</h3>
+                        <p class="text-gray-600">No credentials stored server-side. API keys via headers only.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Authentication -->
+            <section class="mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Authentication</h2>
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <div class="flex items-start mb-6">
+                        <div class="text-red-600 text-4xl mr-4">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-semibold text-gray-800 mb-2">Header-Based API Key</h3>
+                            <p class="text-gray-600 mb-4">All requests must include your Serenity Star API key in the <code class="bg-gray-100 px-2 py-1 rounded">X-Serenity-API-Key</code> header.</p>
+                            <div class="bg-gray-50 p-4 rounded">
+                                <p class="text-sm font-semibold text-gray-700 mb-2">MCP Client Configuration:</p>
+                                <pre class="text-sm"><code>{
+  "mcpServers": {
+    "serenity-star": {
+      "url": "https://mcp.starkcloud.cc/serenitystar/sse",
+      "headers": {
+        "X-Serenity-API-Key": "YOUR_API_KEY"
+      }
+    }
+  }
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 border-l-4 border-blue-600 p-4">
+                        <p class="text-blue-800"><strong>Security Note:</strong> The server does not store any API keys. Your credentials are forwarded directly to the Serenity Star API.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Available Tools -->
+            <section class="mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Available Tools</h2>
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-3">
+                                <i class="fas fa-robot text-blue-600 mr-2"></i>
+                                Agent Management
+                            </h4>
+                            <ul class="text-gray-600 space-y-1 text-sm">
+                                <li>• Create, update, publish agents</li>
+                                <li>• List agents and get details</li>
+                                <li>• Execute agents with messages</li>
+                                <li>• Manage conversations & context</li>
+                                <li>• Analytics & insights</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-3">
+                                <i class="fas fa-brain text-purple-600 mr-2"></i>
+                                AI Models
+                            </h4>
+                            <ul class="text-gray-600 space-y-1 text-sm">
+                                <li>• List 100+ available models</li>
+                                <li>• Get model UUIDs & capabilities</li>
+                                <li>• GPT-4, Claude, Gemini, and more</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-3">
+                                <i class="fas fa-file-upload text-green-600 mr-2"></i>
+                                Document Upload
+                            </h4>
+                            <ul class="text-gray-600 space-y-1 text-sm">
+                                <li>• Upload volatile knowledge</li>
+                                <li>• Temporary document context</li>
+                                <li>• Base64-encoded files</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-3">
+                                <i class="fas fa-chart-line text-orange-600 mr-2"></i>
+                                Analytics & Feedback
+                            </h4>
+                            <ul class="text-gray-600 space-y-1 text-sm">
+                                <li>• Token usage statistics</li>
+                                <li>• Submit & manage feedback</li>
+                                <li>• Agent insights & metrics</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Documentation Links -->
+            <section class="mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Documentation</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <a href="https://modelcontextprotocol.io" target="_blank" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                            <i class="fas fa-book text-blue-600 mr-2"></i>
+                            MCP Protocol Docs
+                        </h3>
+                        <p class="text-gray-600">Learn about the Model Context Protocol</p>
+                    </a>
+                    <a href="https://docs.serenitystar.ai" target="_blank" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                            <i class="fas fa-star text-purple-600 mr-2"></i>
+                            Serenity Star API
+                        </h3>
+                        <p class="text-gray-600">Explore the Serenity Star AI platform</p>
+                    </a>
+                    <a href="https://github.com/modelcontextprotocol/csharp-sdk" target="_blank" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                            <i class="fab fa-github text-gray-800 mr-2"></i>
+                            MCP .NET SDK
+                        </h3>
+                        <p class="text-gray-600">Official Microsoft .NET SDK for MCP</p>
+                    </a>
+                    <a href="https://hub.docker.com/r/lharillo/serenity-mcp" target="_blank" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                            <i class="fab fa-docker text-blue-600 mr-2"></i>
+                            Docker Hub
+                        </h3>
+                        <p class="text-gray-600">View container images and tags</p>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Technical Stack -->
+            <section class="mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Technical Stack</h2>
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <div class="grid md:grid-cols-4 gap-6">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🚀</div>
+                            <h4 class="font-semibold text-gray-800">.NET 10</h4>
+                            <p class="text-sm text-gray-600">ASP.NET Core</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🔌</div>
+                            <h4 class="font-semibold text-gray-800">MCP Protocol</h4>
+                            <p class="text-sm text-gray-600">HTTP/SSE Transport</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">☸️</div>
+                            <h4 class="font-semibold text-gray-800">Kubernetes</h4>
+                            <p class="text-sm text-gray-600">K3s Cluster</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🛡️</div>
+                            <h4 class="font-semibold text-gray-800">Cloudflare</h4>
+                            <p class="text-sm text-gray-600">Tunnel Security</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-8">
+            <div class="container mx-auto px-6 text-center">
+                <p class="mb-2">Serenity Star MCP Server v1.0.0</p>
+                <p class="text-gray-400 text-sm">Built with <i class="fas fa-heart text-red-500"></i> by Subgen AI</p>
+                <div class="mt-4">
+                    <a href="https://subgen.ai" target="_blank" class="text-blue-400 hover:text-blue-300 mx-2">
+                        <i class="fas fa-globe"></i> Subgen AI
+                    </a>
+                    <a href="https://docs.serenitystar.ai" target="_blank" class="text-blue-400 hover:text-blue-300 mx-2">
+                        <i class="fas fa-book"></i> Documentation
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

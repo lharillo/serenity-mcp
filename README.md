@@ -1,143 +1,269 @@
 # Serenity Star MCP Server
 
-A Model Context Protocol (MCP) server that provides tools for interacting with Serenity Star's AI platform. Built using the official C# MCP SDK.
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![.NET](https://img.shields.io/badge/.NET-10.0-purple)](https://dotnet.microsoft.com/)
+[![MCP](https://img.shields.io/badge/MCP-v0.7.0-green)](https://modelcontextprotocol.io/)
 
-## About MCP
+**Production URL:** [https://mcp.starkcloud.cc/serenity star](https://mcp.starkcloud.cc/serenitystar)
 
-The Model Context Protocol (MCP) is an open protocol that standardizes how applications provide context to Large Language Models (LLMs). This server enables secure integration between LLMs and Serenity Star's AI agents and models.
+Model Context Protocol (MCP) server for the [Serenity Star AI Platform](https://serenitystar.ai), providing comprehensive tools for AI agent management, model discovery, conversation handling, and document upload via HTTP/SSE transport.
 
-## Features
+## 🚀 Quick Start
 
-- **MCP Tools**: Execute Serenity Star AI agents
-- **Model Discovery**: List available AI models  
-- **Agent Management**: Query and interact with configured agents
-- **Secure Authentication**: Bearer token validation
-- **Standard Protocol**: Fully compliant MCP implementation
+### MCP Client Configuration
 
-## Installation
+Configure your MCP client (Claude Desktop, VS Code, etc.) to connect to the server:
 
-### Prerequisites
-- .NET 8.0 or later
-- Serenity Star API access and bearer token
+```json
+{
+  "mcpServers": {
+    "serenity-star": {
+      "url": "https://mcp.starkcloud.cc/serenitystar/sse",
+      "headers": {
+        "X-Serenity-API-Key": "YOUR_API_KEY_HERE"
+      }
+    }
+  }
+}
+```
 
-### Build from Source
+**Important:** Your Serenity Star API key must be sent via the `X-Serenity-API-Key` header. The server does not store any credentials.
+
+### Local Development
+
 ```bash
-git clone https://github.com/lharillo/serenity-mcp.git
+# Clone repository
+git clone <repository-url>
 cd serenity-mcp
-dotnet restore
+
+# Build and run
 dotnet build
+dotnet run
+
+# Server starts on http://localhost:8080
 ```
 
-## Configuration
+## 📡 API Endpoints
 
-### Environment Variables
-```bash
-SERENITY_API_KEY=your_serenity_api_key_here
-SERENITY_API_URL=https://api.serenitystar.ai  # Default
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/serenitystar/sse` | Server-Sent Events for MCP protocol |
+| `POST` | `/serenitystar/message?sessionId=<id>` | Send messages to MCP server |
+| `GET` | `/serenitystar/health` | Health check (K8s probes) |
+| `GET` | `/serenitystar/` | Interactive documentation |
+
+## 🛠️ Available Tools
+
+### Agent Management (35+ tools)
+
+#### Read Operations
+- **ListAgents** - List all available agents
+- **GetAgentDetails** - Get detailed information about a specific agent
+- **GetAgentInstances** - List all agent instances
+- **GetInsightsByAgent** - Get analytics for an agent
+- **GetInsightsByVersion** - Get analytics for a specific agent version
+- **GetInsightsByInstance** - Get analytics for an agent instance
+
+#### Create Operations
+- **CreateAssistantAgent** - Create a new Assistant agent
+- **CreateConversation** - Create a stateful conversation
+- **CreateConversationInfo** - Create conversation info with context variables
+
+#### Update Operations
+- **UpdateAssistantAgent** - Update an existing agent (without publishing)
+- **UpdateAndPublishAssistantAgent** - Update and publish an agent
+- **UpdateContextVariables** - Update conversation context variables
+
+#### Execute Operations
+- **ExecuteAgent** - Execute an agent with a message
+  - Supports stateless execution
+  - Supports stateful conversations (with chatId)
+  - Supports volatile knowledge (temporary documents)
+
+### Conversation Management
+- **GetConversation** - Get conversation details
+- **GetConversationInfoByVersion** - Get conversation info for specific version
+- **GetContextList** - List context variables
+- **GetContextByVersion** - Get context for specific version
+- **GetConversationContext** - Get conversation-specific context
+
+### Model Discovery
+- **ListModels** - List all available AI models with UUIDs
+  - Returns model names, UUIDs, providers, capabilities
+  - Essential for agent creation (requires model UUID)
+
+### Document Upload
+- **UploadVolatileKnowledge** - Upload documents for temporary agent context
+  - Supports base64-encoded files
+  - Returns document ID for use in agent execution
+
+### Feedback & Analytics
+- **SubmitFeedback** - Submit feedback for agent responses
+- **DeleteFeedback** - Delete previously submitted feedback
+- **GetTokenUsage** - Get token usage statistics
+
+### Channel & Configuration
+- **GetChannelConfig** - Get channel configuration for an agent
+- **GetCurrentAccount** - Get authenticated user information
+
+## 🔐 Security Model
+
+**No credentials stored server-side:**
+- API keys are provided by MCP clients via HTTP headers
+- Each request includes `X-Serenity-API-Key` header
+- Server acts as a transparent proxy to Serenity Star API
+
+**Best practices:**
+- Store API keys in your MCP client configuration
+- Never commit API keys to version control
+- Rotate API keys regularly
+
+## 🏗️ Architecture
+
+```
+MCP Client
+  ↓
+  Headers: X-Serenity-API-Key
+  ↓
+MCP Server (this)
+  ↓
+  Forward API key
+  ↓
+Serenity Star API
 ```
 
-### appsettings.json
+**Technology Stack:**
+- .NET 10.0 with ASP.NET Core
+- Official Microsoft MCP SDK (`ModelContextProtocol.AspNetCore`)
+- HTTP/SSE transport (K8s-compatible)
+- Kubernetes deployment (K3s)
+- Cloudflare Tunnel for secure access
+
+## 📋 Configuration
+
+### Base URL
+
+The Serenity Star API base URL can be configured:
+
 ```json
 {
   "SerenityApi": {
-    "ApiKey": "your-api-key-here",
     "BaseUrl": "https://api.serenitystar.ai"
   }
 }
 ```
 
-## Usage
+Default: `https://api.serenitystar.ai`
 
-### As Standalone Server
+## 🧪 Testing
+
+### Health Check
 ```bash
-dotnet run
+curl https://mcp.starkcloud.cc/serenitystar/health
 ```
 
-### With MCP Client
-Connect any MCP-compatible client to this server using stdio transport.
-
-## Available Tools
-
-### execute_agent
-Execute a Serenity Star AI agent with parameters.
-
-**Parameters:**
-- `agent_code` (string): The agent identifier
-- `message` (string): Message to send to the agent
-- `channel` (string, optional): Channel identifier (default: "MCP")
-- `user_identifier` (string): User identification
-
-### list_agents  
-List all available Serenity Star agents.
-
-### list_models
-List all available AI models from Serenity Star.
-
-### get_agent_details
-Get detailed information about a specific agent.
-
-**Parameters:**
-- `agent_code` (string): The agent identifier
-
-## Docker
-
-```dockerfile
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
-COPY . /app
-WORKDIR /app
-ENTRYPOINT ["dotnet", "SerenityStarMcp.dll"]
-```
-
+### SSE Connection
 ```bash
-docker build -t serenity-mcp .
-docker run -e SERENITY_API_KEY=your_key serenity-mcp
+curl -N -H "Accept: text/event-stream" \
+     -H "X-Serenity-API-Key: YOUR_KEY" \
+     https://mcp.starkcloud.cc/serenitystar/sse
 ```
 
-## Development
+Expected response:
+```
+event: endpoint
+data: /message?sessionId=<unique-id>
+```
+
+## 📚 Documentation
+
+- **MCP Protocol:** https://modelcontextprotocol.io
+- **Serenity Star API:** https://docs.serenitystar.ai
+- **Microsoft .NET MCP SDK:** https://github.com/modelcontextprotocol/csharp-sdk
+
+## 🔧 Development
 
 ### Project Structure
+
 ```
-src/
-├── Program.cs              # MCP server setup
-├── Tools/
-│   ├── AgentTools.cs       # Agent execution tools
-│   ├── ModelTools.cs       # Model discovery tools
-│   └── ...
+serenity-mcp/
 ├── Services/
-│   └── SerenityApiClient.cs # API client service
-└── Models/
-    └── ...                 # Data models
+│   └── SerenityApiClient.cs    # HTTP client for Serenity API
+├── Tools/
+│   ├── AgentTools.cs            # Agent CRUD operations
+│   ├── ConversationTools.cs     # Conversation management
+│   ├── ModelTools.cs            # Model discovery
+│   ├── VolatileKnowledgeTools.cs # Document upload
+│   ├── InsightsTools.cs         # Analytics
+│   ├── ChannelTools.cs          # Channel config
+│   ├── AgentInstanceTools.cs    # Instance management
+│   └── AccountTools.cs          # Account info
+├── Models/                      # Data models
+├── wwwroot/                     # Landing page
+└── Program.cs                   # Application entry point
 ```
 
-### Adding New Tools
+### Building
 
-1. Create a new tool class with `[McpServerToolType]`
-2. Add methods with `[McpServerTool]` attribute
-3. Tools are automatically discovered and registered
-
-```csharp
-[McpServerToolType]
-public class MyTool
-{
-    [McpServerTool, Description("My custom tool")]
-    public static string MyFunction(string input) => $"Processed: {input}";
-}
+```bash
+dotnet build
 ```
 
-## Security
+### Running Tests
 
-- API keys should be stored securely (environment variables or key vault)
-- This server is designed for trusted environments
-- Configure proper access controls in production deployments
+```bash
+dotnet test
+```
 
-## License
+## 🚢 Deployment
 
-Apache License 2.0
+### Kubernetes
 
-## Contributing
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: serenity-mcp
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: serenity-mcp
+        image: your-registry/serenity-mcp:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ASPNETCORE_URLS
+          value: "http://+:8080"
+        # No API keys in environment!
+```
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+### Environment Variables
+
+- `ASPNETCORE_URLS` - Server URLs (default: `http://+:8080`)
+- `SerenityApi__BaseUrl` - Serenity API base URL (default: `https://api.serenitystar.ai`)
+
+**Note:** API keys are NOT configured as environment variables. They come from client headers.
+
+## 📝 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📞 Support
+
+- **Documentation:** https://docs.serenitystar.ai
+- **Issues:** GitHub Issues
+- **Website:** https://subgen.ai
+
+---
+
+**Built with ❤️ by Subgen AI**
