@@ -40,14 +40,25 @@ Console.WriteLine("====================================");
 // Health check for K8s (before MCP)
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow, version = SerenityStarMcp.Version.FullVersion }));
 
-// Documentation page at /docs
+// Documentation page at /docs - dynamically inject actual server URL
 app.MapGet("/docs", async (HttpContext context) =>
 {
     var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "index.html");
     if (File.Exists(filePath))
     {
+        var html = await File.ReadAllTextAsync(filePath);
+        
+        // Get actual server URL from request
+        var scheme = context.Request.Scheme;
+        var host = context.Request.Host.ToString();
+        var serverUrl = $"{scheme}://{host}";
+        
+        // Replace generic placeholders with actual server URL
+        html = html.Replace("https://your-server.example.com", serverUrl);
+        html = html.Replace("your-server.example.com", host);
+        
         context.Response.ContentType = "text/html; charset=utf-8";
-        await context.Response.SendFileAsync(filePath);
+        await context.Response.WriteAsync(html);
         return Results.Empty;
     }
     return Results.NotFound();
