@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-01-30
+
+### Changed
+- **Updated README.md** - Complete rewrite with accurate 75 tools listing
+  - Removed obsolete "UNAVAILABLE" status markers
+  - Organized all 75 tools into clear categories
+  - Replaced hardcoded server URLs with generic examples
+  - Added comprehensive coverage statistics table
+  - Improved Quick Start documentation
+  - Added detailed deployment guides
+
+### Fixed
+- **Project Metadata** - Updated package description to reflect 75 tools (was 30+)
+- **Repository URL** - Corrected from `subgenai/serenity-mcp` to `lharillo/serenity-mcp`
+- **Version Consistency** - All version references now correctly show 1.3.1
+
+### Documentation
+- **README.md** - Now accurately reflects all 75 implemented tools
+- **SerenityStarMcp.csproj** - Updated description and repository URL
+- **Version.cs** - Bumped to 1.3.1
+
 ## [1.3.0] - 2026-01-29
 
 ### Added - Final 9 Endpoints (100% API Coverage Achieved!)
