@@ -1,8 +1,22 @@
 #!/bin/bash
 
-DEMO_KEY="1d41f163-bd0a-4aae-81aa-f64c7e93cb86"
-MODELS_KEY="a57f5aa8-08ee-4807-8c6f-eef96f636949"
+# API Keys - Set these as environment variables before running
+# Example: export SERENITY_API_KEY="your-api-key-here"
+#          export SERENITY_MODELS_API_KEY="your-models-api-key-here"
+
+DEMO_KEY="${SERENITY_API_KEY:-YOUR_API_KEY_HERE}"
+MODELS_KEY="${SERENITY_MODELS_API_KEY:-YOUR_MODELS_API_KEY_HERE}"
 BASE_URL="https://api.serenitystar.ai"
+
+if [ "$DEMO_KEY" = "YOUR_API_KEY_HERE" ] || [ "$MODELS_KEY" = "YOUR_MODELS_API_KEY_HERE" ]; then
+    echo "❌ ERROR: API keys not set!"
+    echo ""
+    echo "Please set the following environment variables:"
+    echo "  export SERENITY_API_KEY=\"your-api-key-here\""
+    echo "  export SERENITY_MODELS_API_KEY=\"your-models-api-key-here\""
+    echo ""
+    exit 1
+fi
 
 echo "🧪 COMPREHENSIVE TESTING - Serenity MCP v1.2.0"
 echo "=============================================="

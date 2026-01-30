@@ -24,10 +24,18 @@ spec:
         env:
         - name: ASPNETCORE_URLS
           value: "http://+:8080"
-        - name: SERENITY_API_KEY
-          value: "D337FDE7-2C49-43BA-88C8-C09332CD97CE"
-        - name: SERENITY_MODELS_API_KEY
-          value: "a57f5aa8-08ee-4807-8c6f-eef96f636949"
+        # API keys should be provided via Kubernetes Secrets, not hardcoded
+        # Example using secrets (uncomment and create secret first):
+        # - name: SERENITY_API_KEY
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: serenity-mcp-secrets
+        #       key: api-key
+        # - name: SERENITY_MODELS_API_KEY
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: serenity-mcp-secrets
+        #       key: models-api-key
         # Remove health checks since stdio server doesn't expose HTTP health endpoint
         # livenessProbe and readinessProbe removed
         resources:
