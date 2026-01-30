@@ -2,7 +2,7 @@
 set -e
 
 # Configuration
-VERSION="1.0.0"
+VERSION="1.3.1"
 IMAGE_NAME="lharillo/serenity-mcp"
 BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 VCS_REF=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
