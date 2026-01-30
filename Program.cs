@@ -49,7 +49,9 @@ app.MapGet("/docs", async (HttpContext context) =>
         var html = await File.ReadAllTextAsync(filePath);
         
         // Get actual server URL from request
-        var scheme = context.Request.Scheme;
+        // Check X-Forwarded-Proto for proxied HTTPS connections (Cloudflare Tunnel, etc.)
+        var scheme = context.Request.Headers["X-Forwarded-Proto"].FirstOrDefault() 
+                     ?? context.Request.Scheme;
         var host = context.Request.Host.ToString();
         var serverUrl = $"{scheme}://{host}";
         
