@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.3.1] - 2026-01-30
+## [1.4.0] - 2026-02-19
+
+### Added
+- **Dataset Creation Enhancement** - Detailed parameters and CSV support for dataset creation (PR #1 by Julia)
+
+### Fixed
+- **API Key Handling** - Simplified GetApiKey method by removing fallback to configuration
+- **HTTPS Detection** - Fixed HTTPS detection behind reverse proxy
+- **Dynamic URL Injection** - Dynamic URL injection in /docs endpoint
+
+### Documentation
+- **Docs Page** - Updated /docs page with 75 tools listing
+- **Version Bump** - All references updated to 1.4.0
+
 
 ### Changed
 - **Updated README.md** - Complete rewrite with accurate 75 tools listing
