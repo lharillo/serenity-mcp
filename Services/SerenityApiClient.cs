@@ -33,12 +33,10 @@ public class SerenityApiClient
     }
 
     /// <summary>
-    /// Gets the API key from the current HTTP request header, with fallback to configuration.
-    /// Priority: 1) X-Serenity-API-Key header, 2) SerenityApi:ApiKey from config
+    /// Gets the API key from the current HTTP request header.
     /// </summary>
     private string GetApiKey()
     {
-        // Try to get from HTTP request header first
         var context = _httpContextAccessor.HttpContext;
         if (context != null)
         {
@@ -46,22 +44,6 @@ public class SerenityApiClient
             {
                 return apiKey.ToString();
             }
-        }
-
-        // Fallback to configuration (useful when HttpContext is not available, e.g., SSE transport background processing)
-        var configApiKey = _configuration["SerenityApi:ApiKey"];
-        if (!string.IsNullOrWhiteSpace(configApiKey))
-        {
-            return configApiKey;
-        }
-
-        // Provide a clear error message
-        if (context == null)
-        {
-            throw new InvalidOperationException(
-                "No HTTP context available and no API key configured. " +
-                "Set the X-Serenity-API-Key header in your MCP client configuration, " +
-                "or set SerenityApi:ApiKey in appsettings.json or SERENITYAPI__APIKEY environment variable.");
         }
 
         throw new UnauthorizedAccessException(
