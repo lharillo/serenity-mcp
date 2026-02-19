@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.3.1] - 2026-01-30
+## [1.4.1] - 2026-02-19
+
+### Changed
+- **AppendToTable** - Now accepts CSV file content instead of JSON array (multipart upload)
+- **ReplaceTableData** - Now accepts CSV file content instead of JSON array (multipart upload)
+- Both methods support optional fileName parameter (default: data.csv)
+- Tool descriptions updated with CSV format examples
+
+### Fixed
+- **API Alignment** - Table data operations now use multipart/form-data matching Serenity Star API specification (PR #2 by Julia)
+
 ## [1.4.0] - 2026-02-19
 
 ### Added
