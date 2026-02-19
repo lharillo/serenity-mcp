@@ -209,18 +209,19 @@ public class DatasetTools
         }
     }
 
-    [McpServerTool, Description("Append data to an existing table")]
+    [McpServerTool, Description("Append data to an existing table. Requires CSV file content with headers matching the table schema.")]
     public static async Task<string> AppendToTable(
         SerenityApiClient apiClient,
         [Description("Dataset ID")] string datasetId,
         [Description("Table ID")] string tableId,
-        [Description("Data to append as JSON array")] string data,
+        [Description("CSV file content as string. First row must be headers matching the table schema. Example: 'col1,col2\nval1,val2'")] string csvContent,
+        [Description("CSV file name (default: 'data.csv')")] string? fileName = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var appendData = JsonSerializer.Deserialize<object>(data);
-            var result = await apiClient.AppendToTableAsync(datasetId, tableId, appendData!, cancellationToken);
+            var fileBytes = System.Text.Encoding.UTF8.GetBytes(csvContent);
+            var result = await apiClient.AppendToTableAsync(datasetId, tableId, fileBytes, fileName ?? "data.csv", cancellationToken);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -229,18 +230,19 @@ public class DatasetTools
         }
     }
 
-    [McpServerTool, Description("Replace all data in a table")]
+    [McpServerTool, Description("Replace all data in a table. Requires CSV file content with headers matching the table schema.")]
     public static async Task<string> ReplaceTableData(
         SerenityApiClient apiClient,
         [Description("Dataset ID")] string datasetId,
         [Description("Table ID")] string tableId,
-        [Description("New data as JSON array")] string data,
+        [Description("CSV file content as string. First row must be headers matching the table schema. Example: 'col1,col2\nval1,val2'")] string csvContent,
+        [Description("CSV file name (default: 'data.csv')")] string? fileName = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var replaceData = JsonSerializer.Deserialize<object>(data);
-            var result = await apiClient.ReplaceTableDataAsync(datasetId, tableId, replaceData!, cancellationToken);
+            var fileBytes = System.Text.Encoding.UTF8.GetBytes(csvContent);
+            var result = await apiClient.ReplaceTableDataAsync(datasetId, tableId, fileBytes, fileName ?? "data.csv", cancellationToken);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)

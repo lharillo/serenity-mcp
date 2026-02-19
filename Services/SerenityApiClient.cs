@@ -881,21 +881,25 @@ public class SerenityApiClient
         return await ParseJsonResponse(response, cancellationToken);
     }
 
-    public async Task<JsonElement> AppendToTableAsync(string datasetId, string tableId, object appendData, CancellationToken cancellationToken = default)
+    public async Task<JsonElement> AppendToTableAsync(string datasetId, string tableId, byte[] fileContent, string fileName, CancellationToken cancellationToken = default)
     {
-        var jsonContent = JsonSerializer.Serialize(appendData);
-        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+        using var content = new MultipartFormDataContent();
+        var fileStreamContent = new ByteArrayContent(fileContent);
+        fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+        content.Add(fileStreamContent, "File", fileName);
 
-        var response = await SendWithApiKeyAsync(new HttpMethod("PATCH"), $"api/v2/Dataset/{datasetId}/table/{tableId}/AppendTable", httpContent, cancellationToken);
+        var response = await SendWithApiKeyAsync(new HttpMethod("PATCH"), $"api/v2/Dataset/{datasetId}/table/{tableId}/AppendTable", content, cancellationToken);
         return await ParseJsonResponse(response, cancellationToken);
     }
 
-    public async Task<JsonElement> ReplaceTableDataAsync(string datasetId, string tableId, object replaceData, CancellationToken cancellationToken = default)
+    public async Task<JsonElement> ReplaceTableDataAsync(string datasetId, string tableId, byte[] fileContent, string fileName, CancellationToken cancellationToken = default)
     {
-        var jsonContent = JsonSerializer.Serialize(replaceData);
-        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+        using var content = new MultipartFormDataContent();
+        var fileStreamContent = new ByteArrayContent(fileContent);
+        fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+        content.Add(fileStreamContent, "File", fileName);
 
-        var response = await SendWithApiKeyAsync(new HttpMethod("PATCH"), $"api/v2/Dataset/{datasetId}/table/{tableId}/ReplaceTable", httpContent, cancellationToken);
+        var response = await SendWithApiKeyAsync(new HttpMethod("PATCH"), $"api/v2/Dataset/{datasetId}/table/{tableId}/ReplaceTable", content, cancellationToken);
         return await ParseJsonResponse(response, cancellationToken);
     }
 
