@@ -33,17 +33,32 @@ public class DatasetTools
         }
     }
 
-    [McpServerTool, Description("Create a new dataset")]
+    [McpServerTool, Description("Create a new dataset with an initial table. Requires CSV data content for the dataset file.")]
     public static async Task<string> CreateDataset(
         SerenityApiClient apiClient,
-        [Description("Dataset name")] string name,
-        [Description("Dataset description")] string description,
+        [Description("Dataset unique identifier/code (alphanumeric with hyphens, max 64 chars, e.g. 'sales-data')")] string identifier,
+        [Description("Initial table unique identifier/code (alphanumeric with hyphens, max 64 chars, e.g. 'transactions')")] string tableIdentifier,
+        [Description("CSV file content as string. First row must be headers. Example: 'id,name,value\\n1,test,100\\n2,test2,200'")] string csvContent,
+        [Description("Dataset display name (max 64 chars, e.g. 'Sales Data')")] string? displayName = null,
+        [Description("Dataset description (max 4000 chars)")] string? description = null,
+        [Description("Initial table display name (max 64 chars, e.g. 'Transactions')")] string? tableDisplayName = null,
+        [Description("Initial table description (max 4000 chars)")] string? tableDescription = null,
+        [Description("CSV file name (default: 'data.csv')")] string? fileName = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var datasetData = new { name, description };
-            var result = await apiClient.CreateDatasetAsync(datasetData, cancellationToken);
+            var fileBytes = System.Text.Encoding.UTF8.GetBytes(csvContent);
+            var result = await apiClient.CreateDatasetAsync(
+                identifier: identifier,
+                tableIdentifier: tableIdentifier,
+                displayName: displayName,
+                description: description,
+                tableDisplayName: tableDisplayName,
+                tableDescription: tableDescription,
+                fileContent: fileBytes,
+                fileName: fileName ?? "data.csv",
+                cancellationToken: cancellationToken);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
