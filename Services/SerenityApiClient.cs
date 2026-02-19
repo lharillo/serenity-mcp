@@ -245,7 +245,7 @@ public class SerenityApiClient
     /// Update an existing agent of specific type
     /// Activity/Chat use instructions, Copilot uses behaviour
     /// </summary>
-    public async Task<JsonElement> UpdateAgentAsync(string agentType, string agentCode, string name, string description, string systemDefinition, string initialMessage, string modelId, string? conversationStarters, CancellationToken cancellationToken = default)
+    public async Task<JsonElement> UpdateAgentAsync(string agentType, string agentCode, string name, string description, string systemDefinition, string initialMessage, string modelId, string? conversationStarters, List<string>? datasetSourceIds = null, CancellationToken cancellationToken = default)
     {
         var starters = new List<string>();
         if (!string.IsNullOrEmpty(conversationStarters))
@@ -260,6 +260,7 @@ public class SerenityApiClient
             }
         }
 
+        var datasets = datasetSourceIds ?? new List<string>();
         object agentData;
 
         // Activity and Chat use camelCase with instructions
@@ -291,7 +292,7 @@ public class SerenityApiClient
                 knowledge = new
                 {
                     knowledgeSources = new List<object>(),
-                    datasetSources = new List<object>()
+                    datasetSources = datasets
                 }
             };
         }
@@ -320,7 +321,7 @@ public class SerenityApiClient
                 knowledge = new
                 {
                     knowledgeSources = new List<object>(),
-                    datasetSources = new List<object>()
+                    datasetSources = datasets
                 }
             };
         }
@@ -336,7 +337,7 @@ public class SerenityApiClient
     /// Update and control version state of an agent
     /// Activity/Chat use instructions, Copilot uses behaviour
     /// </summary>
-    public async Task<JsonElement> UpdateAgentWithVersionAsync(string agentType, string agentCode, string versionState, string name, string description, string systemDefinition, string initialMessage, string modelId, string? conversationStarters, CancellationToken cancellationToken = default)
+    public async Task<JsonElement> UpdateAgentWithVersionAsync(string agentType, string agentCode, string versionState, string name, string description, string systemDefinition, string initialMessage, string modelId, string? conversationStarters, List<string>? datasetSourceIds = null, CancellationToken cancellationToken = default)
     {
         var starters = new List<string>();
         if (!string.IsNullOrEmpty(conversationStarters))
@@ -351,6 +352,7 @@ public class SerenityApiClient
             }
         }
 
+        var datasets = datasetSourceIds ?? new List<string>();
         object agentData;
 
         // Activity and Chat use instructions
@@ -382,7 +384,7 @@ public class SerenityApiClient
                 knowledge = new
                 {
                     knowledgeSources = new List<object>(),
-                    datasetSources = new List<object>()
+                    datasetSources = datasets
                 }
             };
         }
@@ -411,7 +413,7 @@ public class SerenityApiClient
                 knowledge = new
                 {
                     knowledgeSources = new List<object>(),
-                    datasetSources = new List<object>()
+                    datasetSources = datasets
                 }
             };
         }

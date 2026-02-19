@@ -11,6 +11,22 @@ namespace SerenityStarMcp.Tools;
 [McpServerToolType]
 public class MultiAgentTools
 {
+    private static List<string> ParseStringList(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return new List<string>();
+
+        try
+        {
+            var parsed = JsonSerializer.Deserialize<List<string>>(input);
+            return parsed ?? new List<string>();
+        }
+        catch
+        {
+            return input.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+        }
+    }
+
     // ================================================================================
     // ACTIVITY AGENT
     // ================================================================================
@@ -48,11 +64,13 @@ public class MultiAgentTools
         [Description("Initial welcome message")] string initialMessage,
         [Description("Model UUID")] string modelId,
         [Description("Conversation starters as JSON array (optional)")] string? conversationStarters = null,
+        [Description("Dataset source IDs to link as knowledge, comma-separated or JSON array (optional)")] string? datasetSourceIds = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var result = await apiClient.UpdateAgentAsync("activity", agentCode, name, description, systemDefinition, initialMessage, modelId, conversationStarters, cancellationToken);
+            var datasets = ParseStringList(datasetSourceIds);
+            var result = await apiClient.UpdateAgentAsync("activity", agentCode, name, description, systemDefinition, initialMessage, modelId, conversationStarters, datasets, cancellationToken);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -72,11 +90,13 @@ public class MultiAgentTools
         [Description("Initial welcome message")] string initialMessage,
         [Description("Model UUID")] string modelId,
         [Description("Conversation starters as JSON array (optional)")] string? conversationStarters = null,
+        [Description("Dataset source IDs to link as knowledge, comma-separated or JSON array (optional)")] string? datasetSourceIds = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var result = await apiClient.UpdateAgentWithVersionAsync("activity", agentCode, versionState, name, description, systemDefinition, initialMessage, modelId, conversationStarters, cancellationToken);
+            var datasets = ParseStringList(datasetSourceIds);
+            var result = await apiClient.UpdateAgentWithVersionAsync("activity", agentCode, versionState, name, description, systemDefinition, initialMessage, modelId, conversationStarters, datasets, cancellationToken);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -122,11 +142,13 @@ public class MultiAgentTools
         [Description("Initial welcome message")] string initialMessage,
         [Description("Model UUID")] string modelId,
         [Description("Conversation starters as JSON array (optional)")] string? conversationStarters = null,
+        [Description("Dataset source IDs to link as knowledge, comma-separated or JSON array (optional)")] string? datasetSourceIds = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var result = await apiClient.UpdateAgentAsync("copilot", agentCode, name, description, systemDefinition, initialMessage, modelId, conversationStarters, cancellationToken);
+            var datasets = ParseStringList(datasetSourceIds);
+            var result = await apiClient.UpdateAgentAsync("copilot", agentCode, name, description, systemDefinition, initialMessage, modelId, conversationStarters, datasets, cancellationToken);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -146,11 +168,13 @@ public class MultiAgentTools
         [Description("Initial welcome message")] string initialMessage,
         [Description("Model UUID")] string modelId,
         [Description("Conversation starters as JSON array (optional)")] string? conversationStarters = null,
+        [Description("Dataset source IDs to link as knowledge, comma-separated or JSON array (optional)")] string? datasetSourceIds = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var result = await apiClient.UpdateAgentWithVersionAsync("copilot", agentCode, versionState, name, description, systemDefinition, initialMessage, modelId, conversationStarters, cancellationToken);
+            var datasets = ParseStringList(datasetSourceIds);
+            var result = await apiClient.UpdateAgentWithVersionAsync("copilot", agentCode, versionState, name, description, systemDefinition, initialMessage, modelId, conversationStarters, datasets, cancellationToken);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -196,11 +220,13 @@ public class MultiAgentTools
         [Description("Initial welcome message")] string initialMessage,
         [Description("Model UUID")] string modelId,
         [Description("Conversation starters as JSON array (optional)")] string? conversationStarters = null,
+        [Description("Dataset source IDs to link as knowledge, comma-separated or JSON array (optional)")] string? datasetSourceIds = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var result = await apiClient.UpdateAgentAsync("chat", agentCode, name, description, systemDefinition, initialMessage, modelId, conversationStarters, cancellationToken);
+            var datasets = ParseStringList(datasetSourceIds);
+            var result = await apiClient.UpdateAgentAsync("chat", agentCode, name, description, systemDefinition, initialMessage, modelId, conversationStarters, datasets, cancellationToken);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -220,11 +246,13 @@ public class MultiAgentTools
         [Description("Initial welcome message")] string initialMessage,
         [Description("Model UUID")] string modelId,
         [Description("Conversation starters as JSON array (optional)")] string? conversationStarters = null,
+        [Description("Dataset source IDs to link as knowledge, comma-separated or JSON array (optional)")] string? datasetSourceIds = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var result = await apiClient.UpdateAgentWithVersionAsync("chat", agentCode, versionState, name, description, systemDefinition, initialMessage, modelId, conversationStarters, cancellationToken);
+            var datasets = ParseStringList(datasetSourceIds);
+            var result = await apiClient.UpdateAgentWithVersionAsync("chat", agentCode, versionState, name, description, systemDefinition, initialMessage, modelId, conversationStarters, datasets, cancellationToken);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)

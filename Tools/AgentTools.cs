@@ -12,6 +12,26 @@ namespace SerenityStarMcp.Tools;
 [McpServerToolType]
 public class AgentTools
 {
+    /// <summary>
+    /// Parses a string that can be a comma-separated list or a JSON array into a List of strings.
+    /// Returns empty list if input is null or empty.
+    /// </summary>
+    private static List<string> ParseStringList(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return new List<string>();
+
+        try
+        {
+            var parsed = JsonSerializer.Deserialize<List<string>>(input);
+            return parsed ?? new List<string>();
+        }
+        catch
+        {
+            return input.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+        }
+    }
+
     // ================================================================================
     // READ OPERATIONS
     // ================================================================================
@@ -144,6 +164,7 @@ public class AgentTools
         [Description("Initial welcome message")] string initialMessage,
         [Description("Model UUID (get from ListModels)")] string modelId,
         [Description("Conversation starters as JSON array (optional)")] string? conversationStarters = null,
+        [Description("Dataset source IDs to link as knowledge, comma-separated or JSON array (optional, e.g. 'id1,id2' or '[\"id1\",\"id2\"]')")] string? datasetSourceIds = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -160,6 +181,8 @@ public class AgentTools
                     starters = new List<string> { conversationStarters };
                 }
             }
+
+            var datasets = ParseStringList(datasetSourceIds);
 
             // API requires camelCase for Update endpoint
             var agentData = new
@@ -185,7 +208,7 @@ public class AgentTools
                 knowledge = new
                 {
                     knowledgeSources = new List<object>(),
-                    datasetSources = new List<object>()
+                    datasetSources = datasets
                 }
             };
 
@@ -208,6 +231,7 @@ public class AgentTools
         [Description("Initial welcome message")] string initialMessage,
         [Description("Model UUID (get from ListModels)")] string modelId,
         [Description("Conversation starters as JSON array (optional)")] string? conversationStarters = null,
+        [Description("Dataset source IDs to link as knowledge, comma-separated or JSON array (optional, e.g. 'id1,id2' or '[\"id1\",\"id2\"]')")] string? datasetSourceIds = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -224,6 +248,8 @@ public class AgentTools
                     starters = new List<string> { conversationStarters };
                 }
             }
+
+            var datasets = ParseStringList(datasetSourceIds);
 
             // API requires camelCase for Update endpoint
             var agentData = new
@@ -249,7 +275,7 @@ public class AgentTools
                 knowledge = new
                 {
                     knowledgeSources = new List<object>(),
-                    datasetSources = new List<object>()
+                    datasetSources = datasets
                 }
             };
 
