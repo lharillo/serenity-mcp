@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-purple)](https://dotnet.microsoft.com/)
 [![MCP](https://img.shields.io/badge/MCP-v0.7.0-green)](https://modelcontextprotocol.io/)
-[![Version](https://img.shields.io/badge/version-1.4.1-blue)](https://github.com/lharillo/serenity-mcp/releases)
+[![Version](https://img.shields.io/badge/version-1.4.2-blue)](https://github.com/lharillo/serenity-mcp/releases)
 
 Model Context Protocol (MCP) server for the [Serenity Star AI Platform](https://serenitystar.ai), providing **75 tools** with **100% API coverage** for AI agent management, datasets, knowledge, embeddings, transcription, and conversation handling via HTTP/SSE transport.
 
@@ -319,7 +319,7 @@ Expected response:
 {
   "status": "healthy",
   "timestamp": "2026-01-30T05:52:00.000Z",
-  "version": "1.4.1"
+  "version": "1.4.2"
 }
 ```
 
@@ -408,13 +408,13 @@ cd tests
 
 ```bash
 # Build image
-docker build -t serenity-mcp:1.4.1 .
+docker build -t serenity-mcp:1.4.2 .
 
 # Run container
-docker run -p 8080:8080 serenity-mcp:1.4.1
+docker run -p 8080:8080 serenity-mcp:1.4.2
 ```
 
-**Docker Hub:** `lharillo/serenity-mcp:1.4.1`
+**Docker Hub:** `lharillo/serenity-mcp:1.4.2`
 
 ### Kubernetes
 
@@ -438,7 +438,7 @@ spec:
     spec:
       containers:
       - name: serenity-mcp
-        image: lharillo/serenity-mcp:1.4.1
+        image: lharillo/serenity-mcp:1.4.2
         ports:
         - containerPort: 8080
           name: http
@@ -530,4 +530,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 **Built with ❤️ by [Subgen AI](https://subgen.ai)**
 
-**Version:** 1.4.1 | **Status:** Production Ready ✅ | **Coverage:** 100% (75/75 tools)
+**Version:** 1.4.2 | **Status:** Production Ready ✅ | **Coverage:** 100% (75/75 tools)
