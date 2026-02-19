@@ -33,7 +33,7 @@ public class SerenityApiClient
     }
 
     /// <summary>
-    /// Gets the API key from the current HTTP request header
+    /// Gets the API key from the current HTTP request header.
     /// </summary>
     private string GetApiKey()
     {
@@ -50,19 +50,29 @@ public class SerenityApiClient
     }
 
     /// <summary>
-    /// Creates an HTTP request message with the API key from request headers
+    /// Creates an HTTP request message with the API key from request headers.
+    /// Reads the response body on error to provide detailed error messages.
     /// </summary>
     private async Task<HttpResponseMessage> SendWithApiKeyAsync(HttpMethod method, string uri, HttpContent? content = null, CancellationToken cancellationToken = default)
     {
         var apiKey = GetApiKey();
-        
+
         using var request = new HttpRequestMessage(method, uri);
         request.Headers.Add("X-API-KEY", apiKey);
-        
+
         if (content != null)
             request.Content = content;
-            
-        return await _httpClient.SendAsync(request, cancellationToken);
+
+        var response = await _httpClient.SendAsync(request, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new HttpRequestException(
+                $"Serenity API error {(int)response.StatusCode} ({response.ReasonPhrase}) for {method} {uri}: {errorBody}");
+        }
+
+        return response;
     }
 
     // ================================================================================
@@ -75,7 +85,6 @@ public class SerenityApiClient
     public async Task<JsonElement> GetAgentsAsync(int pageSize = 50, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/Agent?pageSize={pageSize}", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -93,7 +102,6 @@ public class SerenityApiClient
     public async Task<JsonElement> GetAgentDetailsAsync(string agentCode, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/AgentVersion/{agentCode}/Current", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -109,7 +117,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/Agent/assistant", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -125,7 +132,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Put, $"api/v2/agent/assistant/{agentCode}", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -141,7 +147,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Put, $"api/v2/agent/assistant/{agentCode}/publish", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -169,7 +174,7 @@ public class SerenityApiClient
         }
 
         object agentData;
-        
+
         // Activity and Chat use "Instructions", Copilot uses "Behaviour"
         if (agentType == "activity" || agentType == "chat")
         {
@@ -233,7 +238,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/agent/{agentType}", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -257,7 +261,7 @@ public class SerenityApiClient
         }
 
         object agentData;
-        
+
         // Activity and Chat use camelCase with instructions
         if (agentType == "activity" || agentType == "chat")
         {
@@ -325,7 +329,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Put, $"api/v2/agent/{agentType}/{agentCode}", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -349,7 +352,7 @@ public class SerenityApiClient
         }
 
         object agentData;
-        
+
         // Activity and Chat use instructions
         if (agentType == "activity" || agentType == "chat")
         {
@@ -417,7 +420,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Put, $"api/v2/agent/{agentType}/{agentCode}/{versionState}", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -449,7 +451,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/agent/aiproxy", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -478,7 +479,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Put, $"api/v2/agent/aiproxy/{agentCode}", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -507,7 +507,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Put, $"api/v2/agent/aiproxy/{agentCode}/{versionState}", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -521,7 +520,6 @@ public class SerenityApiClient
     public async Task<JsonElement> GetAgentVersionsAsync(string agentCode, string queryString, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/AgentVersion/{agentCode}?{queryString}", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -531,7 +529,6 @@ public class SerenityApiClient
     public async Task<JsonElement> GetPublishedAgentVersionAsync(string agentCode, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/AgentVersion/{agentCode}/Published", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -541,7 +538,6 @@ public class SerenityApiClient
     public async Task<JsonElement> GetAgentVersionByNumberAsync(string agentCode, int versionNumber, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/AgentVersion/{agentCode}/{versionNumber}", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -551,7 +547,6 @@ public class SerenityApiClient
     public async Task<JsonElement> CreateAgentDraftAsync(string agentCode, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/AgentVersion/{agentCode}/Draft", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -561,7 +556,6 @@ public class SerenityApiClient
     public async Task<JsonElement> CreateAgentDraftFromVersionAsync(string agentCode, int versionNumber, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/AgentVersion/{agentCode}/Draft/{versionNumber}", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -571,7 +565,6 @@ public class SerenityApiClient
     public async Task<JsonElement> SaveDraftVersionAsync(string agentCode, int versionNumber, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Put, $"api/v2/AgentVersion/{agentCode}/Draft/{versionNumber}/Save", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -581,7 +574,6 @@ public class SerenityApiClient
     public async Task<JsonElement> PublishAgentVersionAsync(string agentCode, int versionNumber, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Put, $"api/v2/AgentVersion/{agentCode}/Publish/{versionNumber}", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -611,7 +603,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/agent/{agentCode}/execute", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -621,7 +612,6 @@ public class SerenityApiClient
     public async Task<JsonElement> CreateConversationAsync(string agentCode, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/agent/{agentCode}/conversation", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -632,7 +622,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/Agent/{agentCode}/conversation/info", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -643,7 +632,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/Agent/{agentCode}/{agentVersion}/conversation/info", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -653,14 +641,12 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/agent/token-usage", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
     public async Task<JsonElement> GetConversationAsync(string agentCode, string conversationId, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/Agent/{agentCode}/conversation/{conversationId}", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -670,14 +656,12 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/Agent/{agentCode}/conversation/{conversationId}/message/{agentMessageId}/feedback", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
     public async Task<JsonElement> DeleteFeedbackAsync(string agentCode, string conversationId, string agentMessageId, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Delete, $"api/v2/Agent/{agentCode}/conversation/{conversationId}/message/{agentMessageId}/feedback", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -688,21 +672,18 @@ public class SerenityApiClient
     public async Task<JsonElement> GetContextListAsync(string agentCode, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/agent/{agentCode}/conversation/context", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
     public async Task<JsonElement> GetContextByVersionAsync(string agentCode, int agentVersion, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/agent/{agentCode}/{agentVersion}/conversation/context", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
     public async Task<JsonElement> GetConversationContextAsync(string agentCode, string conversationId, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/agent/{agentCode}/conversation/{conversationId}/context", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -713,7 +694,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Patch, $"api/v2/agent/{agentCode}/conversation/{conversationId}/context", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -724,7 +704,6 @@ public class SerenityApiClient
     public async Task<JsonElement> GetAgentInstancesAsync(CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, "api/v2/AgentInstance", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -735,7 +714,6 @@ public class SerenityApiClient
     public async Task<JsonElement> GetModelsAsync(CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, "api/v2/aimodel?pageSize=500", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -754,7 +732,6 @@ public class SerenityApiClient
         content.Add(fileStreamContent, "File", fileName);
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/KnowledgeFile/upload", content, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -769,7 +746,6 @@ public class SerenityApiClient
         content.Add(fileStreamContent, "File", fileName);
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/KnowledgeFile/upload/{agentCode}", content, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -783,7 +759,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Delete, "api/v2/KnowledgeFile", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -802,7 +777,6 @@ public class SerenityApiClient
         content.Add(fileStreamContent, "File", fileName);
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/VolatileKnowledge", content, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -813,24 +787,49 @@ public class SerenityApiClient
     public async Task<JsonElement> ListDatasetsAsync(int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/Dataset?page={page}&pageSize={pageSize}", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
-    public async Task<JsonElement> CreateDatasetAsync(object datasetData, CancellationToken cancellationToken = default)
+    public async Task<JsonElement> CreateDatasetAsync(
+        string identifier,
+        string tableIdentifier,
+        string? displayName = null,
+        string? description = null,
+        string? tableDisplayName = null,
+        string? tableDescription = null,
+        string? subtenantId = null,
+        byte[]? fileContent = null,
+        string? fileName = null,
+        CancellationToken cancellationToken = default)
     {
-        var jsonContent = JsonSerializer.Serialize(datasetData);
-        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+        using var content = new MultipartFormDataContent();
+        content.Add(new StringContent(identifier), "Identifier");
+        content.Add(new StringContent(tableIdentifier), "TableIdentifier");
 
-        var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Dataset", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        if (!string.IsNullOrEmpty(displayName))
+            content.Add(new StringContent(displayName), "DisplayName");
+        if (!string.IsNullOrEmpty(description))
+            content.Add(new StringContent(description), "Description");
+        if (!string.IsNullOrEmpty(tableDisplayName))
+            content.Add(new StringContent(tableDisplayName), "TableDisplayName");
+        if (!string.IsNullOrEmpty(tableDescription))
+            content.Add(new StringContent(tableDescription), "TableDescription");
+        if (!string.IsNullOrEmpty(subtenantId))
+            content.Add(new StringContent(subtenantId), "SubtenantId");
+        if (fileContent != null && !string.IsNullOrEmpty(fileName))
+        {
+            var fileStreamContent = new ByteArrayContent(fileContent);
+            fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+            content.Add(fileStreamContent, "File", fileName);
+        }
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Dataset", content, cancellationToken);
         return await ParseJsonResponse(response, cancellationToken);
     }
 
     public async Task<JsonElement> GetDatasetAsync(string datasetId, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/Dataset/{datasetId}", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -840,14 +839,12 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(new HttpMethod("PATCH"), $"api/v2/Dataset/{datasetId}", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
     public async Task<JsonElement> DeleteDatasetAsync(string datasetId, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Delete, $"api/v2/Dataset/{datasetId}", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -857,7 +854,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/Dataset/{datasetId}/query", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -867,7 +863,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/Dataset/{datasetId}/table", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -877,14 +872,12 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(new HttpMethod("PATCH"), $"api/v2/Dataset/{datasetId}/table/{tableId}", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
     public async Task<JsonElement> DeleteTableAsync(string datasetId, string tableId, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Delete, $"api/v2/Dataset/{datasetId}/table/{tableId}", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -894,7 +887,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(new HttpMethod("PATCH"), $"api/v2/Dataset/{datasetId}/table/{tableId}/AppendTable", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -904,7 +896,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(new HttpMethod("PATCH"), $"api/v2/Dataset/{datasetId}/table/{tableId}/ReplaceTable", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -918,7 +909,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Embeddings/generate", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -932,12 +922,11 @@ public class SerenityApiClient
         var fileStreamContent = new ByteArrayContent(fileContent);
         fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
         content.Add(fileStreamContent, "File", fileName);
-        
+
         if (!string.IsNullOrEmpty(language))
             content.Add(new StringContent(language), "language");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Audio/transcribe", content, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -951,7 +940,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Audio/transcribe/file", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -967,21 +955,18 @@ public class SerenityApiClient
         content.Add(fileStreamContent, "File", fileName);
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/File/upload", content, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
     public async Task<JsonElement> GetFileInfoAsync(string fileId, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/File/{fileId}", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
     public async Task<JsonElement> DownloadFileAsync(string fileId, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/File/download/{fileId}", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsByteArrayAsync(cancellationToken);
         var base64 = Convert.ToBase64String(content);
         return JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(new { fileId, contentBase64 = base64 }));
@@ -994,7 +979,6 @@ public class SerenityApiClient
     public async Task<JsonElement> GetCurrentUserAsync(CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, "api/v2/Account", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -1005,14 +989,12 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Account/login", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
     public async Task<JsonElement> LogoutAsync(CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Account/logout", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -1023,7 +1005,6 @@ public class SerenityApiClient
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Account/refresh", httpContent, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -1034,7 +1015,6 @@ public class SerenityApiClient
     public async Task<JsonElement> ListSubtenantsAsync(int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/Subtenant?page={page}&pageSize={pageSize}", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -1050,7 +1030,6 @@ public class SerenityApiClient
         content.Add(fileStreamContent, "File", fileName);
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, "api/v2/Dataset/validation-schema", content, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -1062,7 +1041,6 @@ public class SerenityApiClient
         content.Add(fileStreamContent, "File", fileName);
 
         var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/Dataset/{datasetId}/table/{tableId}/validation-schema", content, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -1073,7 +1051,6 @@ public class SerenityApiClient
     public async Task<JsonElement> GetChannelConfigAsync(string agentCode, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/channel/serenity-chat/{agentCode}", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -1084,21 +1061,18 @@ public class SerenityApiClient
     public async Task<JsonElement> GetInsightsByAgentAsync(string agentCode, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/agent/{agentCode}/insights", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
     public async Task<JsonElement> GetInsightsByVersionAsync(string agentCode, int agentVersion, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/agent/{agentCode}/{agentVersion}/insights", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
     public async Task<JsonElement> GetInsightsByInstanceAsync(string agentCode, string agentInstanceId, CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, $"api/v2/agent/{agentCode}/insights/{agentInstanceId}", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -1109,7 +1083,6 @@ public class SerenityApiClient
     public async Task<JsonElement> GetCurrentAccountAsync(CancellationToken cancellationToken = default)
     {
         var response = await SendWithApiKeyAsync(HttpMethod.Get, "api/v2/Account", null, cancellationToken);
-        response.EnsureSuccessStatusCode();
         return await ParseJsonResponse(response, cancellationToken);
     }
 
@@ -1120,6 +1093,19 @@ public class SerenityApiClient
     private static async Task<JsonElement> ParseJsonResponse(HttpResponseMessage response, CancellationToken cancellationToken)
     {
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            // Return a meaningful response for empty bodies (e.g., 201 Created, 204 No Content)
+            var statusInfo = JsonSerializer.Serialize(new
+            {
+                success = true,
+                statusCode = (int)response.StatusCode,
+                status = response.ReasonPhrase
+            });
+            return JsonSerializer.Deserialize<JsonElement>(statusInfo);
+        }
+
         return JsonSerializer.Deserialize<JsonElement>(content);
     }
 }
