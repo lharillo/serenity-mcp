@@ -38,17 +38,15 @@ public class SerenityApiClient
     private string GetApiKey()
     {
         var context = _httpContextAccessor.HttpContext;
-        if (context != null)
+        if (context == null)
+            throw new InvalidOperationException("No HTTP context available");
+
+        if (context.Request.Headers.TryGetValue("X-Serenity-API-Key", out var apiKey))
         {
-            if (context.Request.Headers.TryGetValue("X-Serenity-API-Key", out var apiKey) && !string.IsNullOrWhiteSpace(apiKey))
-            {
-                return apiKey.ToString();
-            }
+            return apiKey.ToString();
         }
 
-        throw new UnauthorizedAccessException(
-            "X-Serenity-API-Key header is required. " +
-            "Configure it in your MCP client's headers: {\"X-Serenity-API-Key\": \"your-key\"}");
+        throw new UnauthorizedAccessException("X-Serenity-API-Key header is required");
     }
 
     /// <summary>
