@@ -586,7 +586,7 @@ public class SerenityApiClient
     /// <summary>
     /// Execute an agent with a message
     /// </summary>
-    public async Task<JsonElement> ExecuteAgentAsync(string agentCode, string message, string channel = "MCP", string userIdentifier = "mcp-client", string? chatId = null, string[]? volatileKnowledgeIds = null, CancellationToken cancellationToken = default)
+    public async Task<JsonElement> ExecuteAgentAsync(string agentCode, string message, string channel = "MCP", string userIdentifier = "mcp-client", string? chatId = null, string[]? volatileKnowledgeIds = null, int? versionNumber = null, CancellationToken cancellationToken = default)
     {
         var parameters = new List<object>
         {
@@ -604,16 +604,24 @@ public class SerenityApiClient
         var jsonContent = JsonSerializer.Serialize(parameters);
         var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-        var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/v2/agent/{agentCode}/execute", httpContent, cancellationToken);
+        var endpoint = versionNumber.HasValue
+            ? $"api/v2/agent/{agentCode}/execute/{versionNumber}"
+            : $"api/v2/agent/{agentCode}/execute";
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, endpoint, httpContent, cancellationToken);
         return await ParseJsonResponse(response, cancellationToken);
     }
 
     /// <summary>
     /// Create a conversation for stateful agent interactions
     /// </summary>
-    public async Task<JsonElement> CreateConversationAsync(string agentCode, CancellationToken cancellationToken = default)
+    public async Task<JsonElement> CreateConversationAsync(string agentCode, int? versionNumber = null, CancellationToken cancellationToken = default)
     {
-        var response = await SendWithApiKeyAsync(HttpMethod.Post, $"api/agent/{agentCode}/conversation", null, cancellationToken);
+        var endpoint = versionNumber.HasValue
+            ? $"api/agent/{agentCode}/conversation/{versionNumber}"
+            : $"api/agent/{agentCode}/conversation";
+
+        var response = await SendWithApiKeyAsync(HttpMethod.Post, endpoint, null, cancellationToken);
         return await ParseJsonResponse(response, cancellationToken);
     }
 
