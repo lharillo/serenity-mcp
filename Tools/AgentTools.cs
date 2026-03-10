@@ -301,15 +301,16 @@ public class AgentTools
         [Description("User identifier for tracking (default: mcp-client)")] string userIdentifier = "mcp-client",
         [Description("Optional conversation ID for stateful conversations")] string? chatId = null,
         [Description("Optional volatile knowledge file IDs (comma-separated)")] string? volatileKnowledgeIds = null,
+        [Description("Optional specific version number to execute. If null or omitted, the published (active) version is used")] int? versionNumber = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var knowledgeIds = string.IsNullOrEmpty(volatileKnowledgeIds) 
-                ? null 
+            var knowledgeIds = string.IsNullOrEmpty(volatileKnowledgeIds)
+                ? null
                 : volatileKnowledgeIds.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                
-            var result = await apiClient.ExecuteAgentAsync(agentCode, message, channel, userIdentifier, chatId, knowledgeIds, cancellationToken);
+
+            var result = await apiClient.ExecuteAgentAsync(agentCode, message, channel, userIdentifier, chatId, knowledgeIds, versionNumber, cancellationToken);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (HttpRequestException ex)
@@ -330,11 +331,12 @@ public class AgentTools
     public static async Task<string> CreateConversation(
         SerenityApiClient apiClient,
         [Description("The agent code/identifier")] string agentCode,
+        [Description("Optional specific version number. If null or omitted, the published (active) version is used")] int? versionNumber = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var result = await apiClient.CreateConversationAsync(agentCode, cancellationToken);
+            var result = await apiClient.CreateConversationAsync(agentCode, versionNumber, cancellationToken);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
